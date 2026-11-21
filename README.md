@@ -11,6 +11,11 @@ cd client && npm install && npm run dev    # http://localhost:5173
 (Folder name me `&` na ho, warna Windows npm fail hota hai.)
 Demo shell me left menu me sirf "Help & Support" hai. Admin page: `http://localhost:5173/#admin` (ya page ke upar "Admin (add more)" link).
 
+## Render API + Vercel frontend
+- Set Vercel's **Root Directory** to `client`, **Build Command** to `npm run build`, and **Output Directory** to `dist`.
+- In Vercel project settings, add `VITE_SUPPORT_API_BASE=https://help-support-2.onrender.com/api/support` for Production (and Preview if needed), then redeploy.
+- The default `/api/support` is for local development through the Vite proxy. Render serves the API and media; its current CORS preflight allows cross-origin requests.
+
 ## Senior ko panel me add karna ho to
 1. **Backend:** `server/support/` folder + `server/public/media/` (screenshots/videos) copy karein. Express app me:
    ```js

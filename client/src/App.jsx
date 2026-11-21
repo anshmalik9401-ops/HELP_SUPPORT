@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import HelpSupport from './HelpSupport/HelpSupport.jsx';
 import HelpSupportAdmin from './HelpSupport/HelpSupportAdmin.jsx';
 
-const API = '/api/support';
+const API = (import.meta.env.VITE_SUPPORT_API_BASE || '/api/support').replace(/\/+$/, '');
 
 export default function App() {
   const [admin, setAdmin] = useState(() => window.location.hash === '#admin');
