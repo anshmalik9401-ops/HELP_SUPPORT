@@ -1,0 +1,35 @@
+.hsa-root { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; font-size: 14px; color: #1d2433; background: #fff; border: 1px solid #d5deec; border-radius: 12px; padding: 16px; height: 100%; overflow: auto; box-sizing: border-box; }
+.hsa-root *, .hsa-root *::before { box-sizing: border-box; }
+.hsa-head { display: flex; justify-content: space-between; align-items: center; }
+.hsa-head h2, .hsa-login h2 { margin: 0 0 8px; color: #265e9a; font-size: 18px; }
+.hsa-login { max-width: 360px; margin: 40px auto; display: grid; gap: 10px; }
+.hsa-login input, .hsa-field input, .hsa-field textarea, .hsa-field select, .hsa-search { width: 100%; padding: 8px 10px; border: 1px solid #cfd8e6; border-radius: 8px; font: inherit; background: #fff; color: inherit; }
+.hsa-search { max-width: 320px; }
+.hsa-tabs { display: flex; gap: 4px; flex-wrap: wrap; border-bottom: 2px solid #e4ebf4; margin: 8px 0 12px; }
+.hsa-tabs button { border: 0; background: transparent; padding: 8px 14px; cursor: pointer; font-weight: 600; color: #667085; border-bottom: 3px solid transparent; margin-bottom: -2px; }
+.hsa-tabs button.on { color: #265e9a; border-bottom-color: #265e9a; }
+.hsa-btn { display: inline-block; border: 1px solid #cfd8e6; background: #fff; padding: 6px 12px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; color: #265e9a; }
+.hsa-btn:hover { background: #eaf2fb; }
+.hsa-primary { background: #25983f; border-color: #25983f; color: #fff; } .hsa-primary:hover { background: #1d7f33; }
+.hsa-danger { color: #d92d20; border-color: #f3b4ae; }
+.hsa-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 10px 0; }
+.hsa-count { color: #667085; }
+.hsa-note { color: #667085; }
+.hsa-card { border: 1px solid #d5deec; border-radius: 10px; padding: 14px; background: #f8fafd; }
+.hsa-card h3 { margin: 0 0 10px; color: #265e9a; }
+.hsa-field { margin-bottom: 10px; display: grid; gap: 4px; }
+.hsa-field label { font-weight: 600; font-size: 12.5px; } .hsa-field small { font-weight: 400; color: #667085; }
+.hsa-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.hsa-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
+.hsa-img { display: grid; grid-template-columns: 90px 1fr auto; gap: 8px; align-items: center; margin-bottom: 6px; }
+.hsa-img img { width: 90px; max-height: 60px; object-fit: contain; border: 1px solid #d5deec; border-radius: 6px; background: #fff; }
+.hsa-table { width: 100%; border-collapse: collapse; }
+.hsa-table th { text-align: left; font-size: 12px; color: #667085; }
+.hsa-table td, .hsa-table th { padding: 7px 8px; border-bottom: 1px solid #e4ebf4; vertical-align: middle; }
+.hsa-tag { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: #eef2f8; color: #475467; }
+.hsa-tag.custom { background: #dcfae6; color: #067647; } .hsa-tag.edited { background: #fef3c7; color: #93580a; }
+.hsa-msg { padding: 8px 12px; border-radius: 8px; margin: 8px 0; font-weight: 600; }
+.hsa-msg.ok { background: #dcfae6; color: #067647; } .hsa-msg.bad { background: #fee4e2; color: #b42318; }
+@media (max-width: 640px) { .hsa-pair, .hsa-img { grid-template-columns: 1fr; } }
+.hsa-switch { display: flex; align-items: center; gap: 10px; font-weight: 600; margin: 10px 0; cursor: pointer; }
+.hsa-switch input { width: 18px; height: 18px; }

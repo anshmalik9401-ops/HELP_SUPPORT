@@ -1,0 +1,138 @@
+const { faq } = require('./_h');
+
+module.exports = {
+  faqs: [
+    faq({
+      id: 'rcs-what', cat: 'rcs',
+      q: [`RCS kya hai aur RCS menu me kya-kya hai?`, `What is RCS and what is in the RCS menu?`],
+      a: [`RCS (Rich Communication Services) ek advanced messaging hai jisme image, GIF, buttons (call / link) aur verified brand ke saath message jata hai - normal SMS se zyada engaging.`,
+          `RCS (Rich Communication Services) is advanced messaging with images, GIFs, buttons (call / link) and a verified brand - more engaging than a plain SMS.`],
+      steps: [
+        [`Dashboard: RCS ki saari analytics yahan dikhti hain.`, `Templates: RCS templates banana aur manage karna.`, `Create Campaign: RCS campaign run karna.`, `Multi Schedule Campaign: campaign ko batches me bhejna.`, `Campaign Report: campaigns ki report aur status.`, `MIS Report: monthly report.`, `RCS Chat: customer ke reply dekhna.`, `Consolidate Report: date-wise / mahine ki report.`, `API Documentation: RCS API ka document.`],
+        [`Dashboard: all your RCS analytics are shown here.`, `Templates: create and manage RCS templates.`, `Create Campaign: run an RCS campaign.`, `Multi Schedule Campaign: send a campaign in batches.`, `Campaign Report: campaign reports and status.`, `MIS Report: monthly report.`, `RCS Chat: see customer replies.`, `Consolidate Report: date-wise / monthly report.`, `API Documentation: the RCS API document.`],
+      ],
+      img: [[`rcs-menu`, null, null]],
+      kw: `rcs, rcs kya hai, rcs menu, rich message, rcs options, rcs dashboard, rcs analytics, what is rcs`,
+    }),
+    faq({
+      id: 'rcs-template-create', cat: 'rcs',
+      q: [`RCS template kaise banayein?`, `How do I create an RCS template?`],
+      a: [`RCS campaign chalane se pehle template banana zaroori hai. Template me aap bot select karte hain, naam dete hain aur type (PlainText / RichCard / Carousel) chunte hain.`,
+          `You must create a template before running an RCS campaign. In the template you select the bot, give a name and choose the type (PlainText / RichCard / Carousel).`],
+      steps: [
+        [`RCS > Templates kholein aur Create New Template par click karein.`, `Bot select karein - wahi bot jo aapne banakar yahan map karwaya hai.`, `Template Name likhein (sirf letters / numbers, max 20 characters).`, `Template Type chunein: PlainText, RichCard ya Carousel.`, `Message Text ya card ki details bharein; zaroorat ho to variable [custom_param0], [custom_param1] ... lagayein.`, `Button chahiye to Suggestions me Add Suggestion karein.`, `Right side Mobile Preview me dekhein, phir Save Template karein.`, `RCS team ke approval ka wait karein - approve hone ke baad hi template campaign me use hoga.`],
+        [`Open RCS > Templates and click Create New Template.`, `Select the Bot - the one you created and got mapped here.`, `Enter the Template Name (letters / numbers only, max 20 characters).`, `Choose the Template Type: PlainText, RichCard or Carousel.`, `Fill the Message Text or card details; add variables [custom_param0], [custom_param1] ... if needed.`, `Add buttons through Suggestions > Add Suggestion if needed.`, `Check the Mobile Preview on the right, then click Save Template.`, `Wait for RCS team approval - the template can be used in a campaign only after approval.`],
+      ],
+      tips: [[`Page par "Download RCS Template Guidelines (PDF)" link se template ke rules download kar sakte hain.`], [`Use the "Download RCS Template Guidelines (PDF)" link on the page to get the template rules.`]],
+      img: [[`rcs-templates-manager`, `1: Create New Template, 2: Bot`, `1: Create New Template, 2: Bot`], [`rcs-template-common`, `1: Bot, 2: Template Name, 3: Template Type, 4: Notes`, `1: Bot, 2: Template Name, 3: Template Type, 4: Notes`]],
+      video: 'rcs-template',
+      kw: `rcs template, template banana, create template rcs, bot select, template name, new template rcs, rcs template kaise, template guidelines`,
+    }),
+    faq({
+      id: 'rcs-types', cat: 'rcs',
+      q: [`PlainText, Rich Card aur Carousel me kya fark hai?`, `What is the difference between PlainText, Rich Card and Carousel?`],
+      a: [`RCS template ke 3 type hote hain. Rich Card me image / GIF bhej sakte hain; Plain message jaisa text hota hai. Plain isliye use karte hain kyunki normal SMS me call-number ya link ke button nahi lag sakte, jabki RCS Plain me lag sakte hain.`,
+          `RCS templates come in 3 types. Rich Card can carry an image / GIF; Plain is text like a message. Plain is used because a normal SMS cannot have call-number or link buttons, while RCS Plain can.`],
+      steps: [
+        [`PlainText: message jaisa text, isme Suggestions (call / link buttons) lag sakte hain (max 11).`, `Rich Card: image / GIF (video ya PDF bhi) ke saath title aur description; max 4 suggestions.`, `Carousel: 2 se 10 cards, har card par max 4 suggestions.`],
+        [`PlainText: message-like text; Suggestions (call / link buttons) can be added (max 11).`, `Rich Card: title and description with an image / GIF (video or PDF too); max 4 suggestions.`, `Carousel: 2 to 10 cards, each card with max 4 suggestions.`],
+      ],
+      kw: `plain, plaintext, rich card, richcard, carousel, difference, fark, template type, kaun sa type, rcs type`,
+    }),
+    faq({
+      id: 'rcs-buttons', cat: 'rcs',
+      q: [`RCS me call / link ka button (Suggestion) kaise lagayein?`, `How do I add a call / link button (Suggestion) in RCS?`],
+      a: [`Buttons Suggestions ke through lagte hain. PlainText me max 11, Rich Card me max 4 aur Carousel me har card par max 4 suggestions lag sakte hain.`, `Buttons are added through Suggestions. PlainText allows max 11, Rich Card max 4 and Carousel max 4 per card.`],
+      steps: [
+        [`Template Type PlainText (ya RichCard) chunein.`, `Suggestions me button ka Label likhein (jaise View Details).`, `Type chunein (jaise OPEN_URL) aur URL / number daalein.`, `Aur button chahiye to + Add Suggestion par click karein.`, `Save Template karein.`],
+        [`Choose Template Type PlainText (or RichCard).`, `In Suggestions enter the button Label (e.g. View Details).`, `Choose the type (e.g. OPEN_URL) and enter the URL / number.`, `Click + Add Suggestion for more buttons.`, `Click Save Template.`],
+      ],
+      img: [[`rcs-template-plain`, `1: Message Text, 2: Suggestions / Add Suggestion`, `1: Message Text, 2: Suggestions / Add Suggestion`]],
+      kw: `button, suggestion, suggestions, call button, link button, open url, cta button, add suggestion, rcs button`,
+    }),
+    faq({
+      id: 'rcs-variables', cat: 'rcs',
+      q: [`RCS template me variable kaise lagayein?`, `How do I use variables in an RCS template?`],
+      a: [`RCS me dynamic variable [custom_param0], [custom_param1], [custom_param2] ... ke roop me lagte hain.`, `Dynamic variables in RCS are written as [custom_param0], [custom_param1], [custom_param2] ...`],
+      steps: [[`Message me jahan value badalni hai wahan [custom_param0], [custom_param1] ... likhein.`, `Maximum 7 variables allowed hain.`, `Campaign banate time har variable ki value apne data se bharein.`],
+              [`Write [custom_param0], [custom_param1] ... where the value should change.`, `A maximum of 7 variables is allowed.`, `Fill each variable's value from your data when creating the campaign.`]],
+      kw: `variable, custom_param, rcs variable, dynamic, custom param, placeholder, variable rcs`,
+    }),
+    faq({
+      id: 'rcs-media-limits', cat: 'rcs',
+      q: [`RCS me image / video / PDF ki size limit kya hai?`, `What are the image / video / PDF size limits in RCS?`],
+      a: [`RCS template me media ki size limit ye hai:`, `Media size limits in an RCS template:`],
+      steps: [[`Image / GIF: 1 MB tak.`, `Video: 5 MB tak.`, `PDF: 1 MB tak.`, `Height: SHORT ya MEDIUM; Orientation: VERTICAL ya HORIZONTAL.`],
+              [`Image / GIF: up to 1 MB.`, `Video: up to 5 MB.`, `PDF: up to 1 MB.`, `Height: SHORT or MEDIUM; Orientation: VERTICAL or HORIZONTAL.`]],
+      kw: `image size, video size, pdf size, media limit, size limit, 1mb, 5mb, rcs image, rcs video, gif`,
+    }),
+    faq({
+      id: 'rcs-template-approval', cat: 'rcs',
+      q: [`RCS template approve kaise hota hai?`, `How does an RCS template get approved?`],
+      a: [`Template save karne ke baad RCS team use approve karti hai. Sirf approved template hi Create Campaign me select ho sakta hai.`, `After you save a template the RCS team approves it. Only an approved template can be selected in Create Campaign.`],
+      steps: [[`Template Save karein.`, `RCS team ke approval ka wait karein.`, `Approve hone ke baad Create Campaign me template dikhega.`, `Approval me problem ho to Template Guidelines (PDF) se check karke dobara banayein ya support1@nimbusitsolutions.com par mail karein.`],
+              [`Save the template.`, `Wait for the RCS team's approval.`, `After approval the template appears in Create Campaign.`, `If there is a problem check the Template Guidelines (PDF) and recreate it, or mail support1@nimbusitsolutions.com.`]],
+      kw: `rcs approve, rcs approval, template approve, template pending, template active, template nahi dikh raha rcs, approved template`,
+    }),
+    faq({
+      id: 'rcs-campaign-create', cat: 'rcs',
+      q: [`RCS campaign kaise run karein?`, `How do I run an RCS campaign?`],
+      a: [`Create Campaign me approved template aur bot chunkar numbers daalte hain aur submit karte hi campaign run ho jata hai.`, `In Create Campaign you choose the approved template and bot, add the numbers and submit - the campaign runs.`],
+      steps: [
+        [`RCS > Create Campaign kholein.`, `Campaign Name likhein.`, `Wo Template chunein jo aapne add kiya aur RCS team ne approve kiya hai.`, `Bot select karein.`, `Recipients: numbers ki file upload karein ya neeche box me copy-paste karein (10,000 tak).`, `Date aur time chunein (ya directly run karein).`, `Variable hon to unki values bharein aur Preview dekhein.`, `Submit karein - aapka campaign run ho jayega.`],
+        [`Open RCS > Create Campaign.`, `Enter the Campaign Name.`, `Select the Template that you added and the RCS team approved.`, `Select the Bot.`, `Recipients: upload a file of numbers or paste them in the box below (up to 10,000).`, `Choose the date and time (or run it directly).`, `Fill the variable values if any and check the Preview.`, `Click Submit - your campaign runs.`],
+      ],
+      video: 'rcs-campaign',
+      kw: `rcs campaign, create campaign rcs, rcs bhejna, rcs send, rcs message bhejna, rcs campaign kaise, rcs run, rcs campaign banana`,
+    }),
+    faq({
+      id: 'rcs-multi', cat: 'rcs',
+      q: [`Multi Schedule Campaign kya hai?`, `What is a Multi Schedule Campaign?`],
+      a: [`Ye Create Campaign jaisa hi hai, bas campaign ko batches me baantkar bheja jata hai.`, `It is the same as Create Campaign, except that the campaign is divided into batches.`],
+      steps: [[`RCS > Multi Schedule Campaign kholein.`, `Campaign ki details Create Campaign ki tarah bharein.`, `Batches ka schedule set karke Submit karein.`],
+              [`Open RCS > Multi Schedule Campaign.`, `Fill the campaign details as in Create Campaign.`, `Set the batch schedule and Submit.`]],
+      kw: `multi schedule, multi schedule campaign, rcs batch, rcs schedule, rcs split`,
+    }),
+    faq({
+      id: 'rcs-report', cat: 'rcs',
+      q: [`RCS campaign ki report aur fail hone ka reason kahan dekhein?`, `Where do I see the RCS campaign report and the failure reason?`],
+      a: [`RCS > Campaign Report me campaign ka status dikhta hai, aur agar fail hua hai to uska reason bhi.`, `RCS > Campaign Report shows the campaign status and, if it failed, the reason.`],
+      steps: [[`RCS > Campaign Report kholein.`, `Campaign ka status dekhein; fail hone par reason bhi dikhta hai.`, `Common reasons: policy violation, ya message ke end me Bot ka naam na dena (ye mandatory hai).`, `Reason theek karke campaign dobara chalayein.`],
+              [`Open RCS > Campaign Report.`, `Check the campaign status; the reason is shown if it failed.`, `Common reasons: a policy violation, or not adding the Bot name at the end of the message (it is mandatory).`, `Fix the reason and run the campaign again.`]],
+      kw: `rcs report, rcs fail, rcs failed, policy violation, bot name, rcs status, rcs campaign report, bot name nahi diya, rcs fail kyun`,
+    }),
+    faq({
+      id: 'rcs-chat', cat: 'rcs',
+      q: [`RCS Chat me kya dikhta hai?`, `What is shown in RCS Chat?`],
+      a: [`Jab aapke RCS message par customer reply karta hai to wo chat RCS > RCS Chat me dikhti hai.`, `When a customer replies to your RCS message, that chat is shown in RCS > RCS Chat.`],
+      kw: `rcs chat, reply, customer reply, response, rcs reply, user ne reply kiya, chat`,
+    }),
+    faq({
+      id: 'rcs-mis-consolidate', cat: 'rcs',
+      q: [`RCS MIS Report aur Consolidate Report kya hain?`, `What are the RCS MIS Report and Consolidate Report?`],
+      a: [`MIS Report me monthly report dikhti hai. Consolidate Report me date-wise ya pure mahine ki report request karke, kuch der baad (ya 24 ghante me) Download option aane par download kar sakte hain.`,
+          `The MIS Report shows the monthly report. In the Consolidate Report you request a date-wise or whole-month report and download it when the Download option appears after a while (or within 24 hours).`],
+      kw: `rcs mis, rcs consolidate, rcs monthly report, rcs report download, rcs month report`,
+    }),
+    faq({
+      id: 'rcs-api', cat: 'rcs',
+      q: [`RCS API kaise use karein?`, `How do I use the RCS API?`],
+      a: [`RCS > API Documentation me poora document milta hai. Mukhya baatein neeche hain.`, `The full document is in RCS > API Documentation. The key points are below.`],
+      steps: [
+        [`Panel ke Authentication section me apni API key generate karein; har request me apiKey parameter dena hota hai.`, `Flow: GetBots se BotId > (optional) CreateTemplate > GetTemplates (sirf Active template use ho sakta hai) > CheckRcsBalance > CreateCampaign.`, `CreateCampaign me ek request me max 5000 numbers (10 digit).`, `SMS fallback on karne par RCS fail / non-RCS number par SMS chala jata hai (Entity, Sender, SMS Template ID aur SMS text dena hota hai).`, `Delivery report aur user replies aapke HTTPS webhook par aate hain (2xx response 30 second me dena hota hai).`, `API key kisi ke saath share na karein.`],
+        [`Generate your API key in the panel's Authentication section; every request needs the apiKey parameter.`, `Flow: GetBots for the BotId > (optional) CreateTemplate > GetTemplates (only an Active template can be used) > CheckRcsBalance > CreateCampaign.`, `CreateCampaign accepts max 5000 numbers (10 digits) per request.`, `With SMS fallback on, an SMS is sent when RCS fails / the number is non-RCS (you must give Entity, Sender, SMS Template ID and SMS text).`, `Delivery reports and user replies arrive at your HTTPS webhook (return a 2xx within 30 seconds).`, `Do not share your API key with anyone.`],
+      ],
+      kw: `rcs api, api key, createcampaign, getbots, webhook, fallback, rcs api documentation, rcs integration, apikey, rcs developer`,
+    }),
+    faq({
+      id: 'rcs-not-delivered', cat: 'rcs',
+      q: [`RCS deliver nahi hua, kya karein?`, `My RCS was not delivered. What should I do?`],
+      a: [`RCS tabhi deliver hota hai jab receiver ka phone RCS support karta ho aur internet on ho.`, `RCS is delivered only when the receiver's phone supports RCS and has internet.`],
+      steps: [
+        [`Receiver ke phone me Google Messages me RCS / Chat features on hon aur internet (data / wifi) chalu ho.`, `Number RCS-supported na ho to RCS nahi jata - aise numbers ke liye SMS fallback (API me) on rakhein.`, `RCS > Campaign Report me status aur reason dekhein - policy violation ya bot name missing ho sakta hai.`, `Phir bhi problem ho to Campaign Name ke saath support1@nimbusitsolutions.com par mail karein.`],
+        [`The receiver's Google Messages must have RCS / Chat features on and the phone must have internet (data / wifi).`, `RCS is not delivered to non-RCS numbers - keep SMS fallback on (in the API) for such numbers.`, `Check the status and reason in RCS > Campaign Report - it could be a policy violation or a missing bot name.`, `If it still fails mail support1@nimbusitsolutions.com with the Campaign Name.`],
+      ],
+      kw: `rcs not delivered, rcs failed, rcs nahi gaya, rcs deliver, rcs fail, rcs pending, not rcs capable, rcs nahi pahuncha`,
+    }),
+  ],
+};
