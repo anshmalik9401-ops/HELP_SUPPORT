@@ -76,7 +76,7 @@ const clean = (s, n) => String(s || '').replace(/\s+/g, ' ').trim().slice(0, n);
 
 let workingEndpoint = null; // remembers which Google endpoint accepted the key
 const MAX_RETRIES = 2;
-const RETRYABLE_STATUSES = new Set([408, 429, 500, 502, 503, 504]);
+const RETRYABLE_STATUSES = new Set([408, 500, 502, 503, 504]);
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // All endpoints worth trying for this key (the key format decides the order)
@@ -105,6 +105,7 @@ async function callOnce(url, system, contents, model) {
     if (!r.ok) {
       const e = new Error(`HTTP ${r.status}: ${j.error?.message || r.statusText || ''}`.trim());
       e.status = r.status;
+      e.quotaExceeded = r.status === 429;
       e.retryAfter = r.headers.get('retry-after');
       throw e;
     }
@@ -234,6 +235,17 @@ async function callAI(system, contents) {
     } catch (e) {
       if (!isOpenRouterConfigured()) throw e;
       console.warn(`[support] Gemini unavailable (${e.message}); trying OpenRouter`);
+      try {
+        return await callOpenRouter(system, contents);
+      } catch (fallbackError) {
+        if (!e.quotaExceeded) throw fallbackError;
+        const quotaError = new Error('Gemini usage limit reached and OpenRouter fallback failed');
+        quotaError.status = 429;
+        quotaError.code = 'AI_QUOTA_EXCEEDED';
+        quotaError.quotaExceeded = true;
+        quotaError.cause = fallbackError;
+        throw quotaError;
+      }
     }
   }
   if (isOpenRouterConfigured()) return callOpenRouter(system, contents);

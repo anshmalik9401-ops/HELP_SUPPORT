@@ -2,7 +2,14 @@
 export const makeApi = (apiBase) => {
   const j = async (path, opts) => {
     const r = await fetch(apiBase + path, opts);
-    if (!r.ok) { const e = new Error('HTTP ' + r.status); e.status = r.status; try { e.detail = (await r.json()).detail; } catch { /* no body */ } throw e; }
+    if (!r.ok) {
+      const body = await r.json().catch(() => ({}));
+      const e = new Error(body.error || 'HTTP ' + r.status);
+      e.status = r.status;
+      e.code = body.code;
+      e.detail = body.detail;
+      throw e;
+    }
     return r.json();
   };
   const post = (path, body) => j(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });

@@ -97,6 +97,24 @@ async function main() {
 
   assert.strictEqual(await ai.callGemini('test system', request), 'OK');
   assert.strictEqual(calls, 2, 'should retry a timeout once');
+
+  calls = 0;
+  global.fetch = async () => {
+    calls += 1;
+    return {
+      ok: false,
+      status: 429,
+      statusText: 'Too Many Requests',
+      headers: { get: () => null },
+      json: async () => ({ error: { status: 'RESOURCE_EXHAUSTED', message: 'Daily quota exceeded' } }),
+    };
+  };
+
+  await assert.rejects(
+    ai.callGemini('test system', request),
+    (error) => error.status === 429 && error.quotaExceeded,
+  );
+  assert.strictEqual(calls, 1, 'quota 429 must not be retried');
   console.log('AI retry tests passed');
 }
 

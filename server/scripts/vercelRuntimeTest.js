@@ -7,6 +7,8 @@ process.env.VERCEL = '1';
 process.env.ADMIN_KEY = 'vercel-test-key';
 process.env.GEMINI_API_KEY = 'vercel-test-key';
 process.env.AI_ENABLED = 'true';
+process.env.GEMINI_BASE_URL = 'https://unit.test';
+process.env.OPENROUTER_API_KEY = '';
 delete process.env.MONGO_URI;
 
 const ai = require('../support/ai');
@@ -76,6 +78,24 @@ async function main() {
     assert.strictEqual(JSON.parse(greeting.body).type, 'ai');
     assert.strictEqual(JSON.parse(greeting.body).chat, true);
 
+    let quotaRequests = 0;
+    global.fetch = async () => {
+      quotaRequests += 1;
+      return {
+        ok: false,
+        status: 429,
+        statusText: 'Too Many Requests',
+        headers: { get: () => null },
+        json: async () => ({ error: { status: 'RESOURCE_EXHAUSTED', message: 'Daily quota exceeded' } }),
+      };
+    };
+    const quotaResponse = await request(server, 'POST', '/api/support/ai', { text: 'How do I send an SMS campaign?', lang: 'en' });
+    const quotaBody = JSON.parse(quotaResponse.body);
+    assert.strictEqual(quotaResponse.status, 503);
+    assert.strictEqual(quotaBody.code, 'AI_QUOTA_EXCEEDED');
+    assert.match(quotaBody.error, /usage limit/i);
+    assert.strictEqual(quotaRequests, 1, 'the exhausted Gemini quota must not be retried');
+
     const image = await request(server, 'GET', '/api/support/media/img/sms-menu.png');
     assert.strictEqual(image.status, 200);
     assert.strictEqual(image.headers['content-type'], 'image/png');
@@ -104,7 +124,7 @@ async function main() {
       new RegExp(readOnlyMessage.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
     );
 
-    console.log('Vercel runtime checks passed: health, content, ask, greeting, media, admin 501, no file writes');
+    console.log('Vercel runtime checks passed: health, content, ask, greeting, quota handling, media, admin 501, no file writes');
   } finally {
     ai.isEnabled = originalIsEnabled;
     global.fetch = originalFetch;

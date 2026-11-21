@@ -207,7 +207,7 @@ export default function HelpSupport({ apiBase = '/api/support', user = null, cla
       say(r.chat ? [{ kind: 'aiAnswer', text: r.text, chat: true, general: false, query: text, faqIds: [] }] : [{ kind: 'aiAnswer', text: r.text, general: !!r.general, query: text, faqIds: r.faqIds || [] }, { kind: 'followup', faqId: 'ai' }], 150);
     } catch (e) {
       setTyping(false);
-      push({ from: 'bot', kind: e.status === 429 ? 'aiLimit' : 'aiErr', detail: e.detail || '' });
+      push({ from: 'bot', kind: e.code === 'AI_QUOTA_EXCEEDED' ? 'aiQuota' : e.status === 429 ? 'aiLimit' : 'aiErr', detail: e.detail || '' });
       if (e.status !== 429) setAiMode(false);
     }
   };
@@ -416,6 +416,7 @@ export default function HelpSupport({ apiBase = '/api/support', user = null, cla
           </>
         );
       case 'aiErr': return <><p>{L.aiErr}</p>{m.detail && <p className="hs-aidetail">{m.detail}</p>}<MailBlock L={L} query="" email={supportEmail} /></>;
+      case 'aiQuota': return <p>{L.aiQuota}</p>;
       case 'aiLimit': return <p>{L.aiLimit}</p>;
       case 'notFound': return <p>{L.notFound}</p>;
       case 'sorry': return <p>{L.sorry}</p>;
@@ -447,7 +448,7 @@ export default function HelpSupport({ apiBase = '/api/support', user = null, cla
 
   const inputDisabled = !lang || ended;
   const placeholder = ended ? L.phEnded : !lang ? L.phLang : L.ph;
-  const wide = new Set(['mail', 'errors', 'faq', 'video', 'videoList', 'aiAnswer', 'aiOffer', 'aiErr']);
+  const wide = new Set(['mail', 'errors', 'faq', 'video', 'videoList', 'aiAnswer', 'aiOffer', 'aiErr', 'aiQuota']);
 
   return (
     <div className={`hs-root ${className}`}>

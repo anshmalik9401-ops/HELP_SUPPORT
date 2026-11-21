@@ -54,6 +54,29 @@ async function main() {
   assert.strictEqual(calls, 2, 'Gemini failure falls back to OpenRouter');
   assert.strictEqual(ai.provider(), 'OpenRouter');
 
+  calls = 0;
+  global.fetch = async (url) => {
+    calls += 1;
+    if (url === 'https://unit.test/models/gemini-test:generateContent') {
+      return {
+        ok: false,
+        status: 429,
+        statusText: 'Too Many Requests',
+        headers: { get: () => null },
+        json: async () => ({ error: { status: 'RESOURCE_EXHAUSTED', message: 'Daily quota exceeded' } }),
+      };
+    }
+    assert.strictEqual(url, 'https://openrouter.ai/api/v1/chat/completions');
+    return {
+      ok: true,
+      status: 200,
+      statusText: 'OK',
+      json: async () => ({ choices: [{ message: { content: '[[SOURCE:KB]]Answer from OpenRouter' } }] }),
+    };
+  };
+  assert.strictEqual(await ai.callAI('Test prompt', contents), '[[SOURCE:KB]]Answer from OpenRouter');
+  assert.strictEqual(calls, 2, 'Gemini quota errors should immediately use OpenRouter');
+
   process.env.GEMINI_API_KEY = '';
   calls = 0;
   global.fetch = async (url, options) => {

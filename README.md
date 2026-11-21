@@ -12,7 +12,7 @@ cd client && npm install && npm run dev    # http://localhost:5173
 Demo shell me left menu me sirf "Help & Support" hai. Admin page: `http://localhost:5173/#admin` (ya page ke upar "Admin (add more)" link).
 
 ## Deploy on Vercel
-- Set Vercel's **Root Directory** to the repository root. `vercel.json` builds the client into `client/dist` and routes `/api/*` to the Express function.
+- Set Vercel's **Root Directory** to the repository root when using its serverless API; the build commands also support `client` as the root when the API stays on Render. `vercel.json` builds the client and routes `/api/*` to the Express function when the repository root is used.
 - In **Project > Settings > Environment Variables**, set `GEMINI_API_KEY`, `OPENROUTER_API_KEY`, `ADMIN_KEY`, `SUPPORT_EMAIL`, `BRAND_NAME`, and `PANEL_URL`. Optionally set `GEMINI_MODEL` (default `gemini-3.8-flash`), `GEMINI_FALLBACK_MODEL` (default `gemini-3.6-flash`), `OPENROUTER_MODEL` (default `openai/gpt-4o`), `MONGO_URI`, and `AI_ENABLED=false` to turn Nia off.
 - MongoDB is optional; without `MONGO_URI`, feedback and unanswered-query file logs are skipped on Vercel. Admin reads work, but edits/uploads return 501 because the filesystem is read-only; edit seed files under `server/support/data/seed` and redeploy.
 - The frontend uses same-origin `/api/support` by default. If the API is hosted separately, set the frontend build variable `VITE_SUPPORT_API_BASE`, for example `https://help-support-2.onrender.com/api/support`.
@@ -41,7 +41,7 @@ Demo shell me left menu me sirf "Help & Support" hai. Admin page: `http://localh
 - **Demo videos replace karna:** abhi `server/public/media/videos/*.mp4` placeholder hain (dlt-mapping, sms-flow, rcs-template, rcs-campaign). Same naam ki real file rakh dein, ya Admin > Videos me upload / YouTube link do.
 
 ## Nia - Ask AI (Gemini with OpenRouter fallback)
-- Set `GEMINI_API_KEY` and `OPENROUTER_API_KEY` in the server environment (Render Environment Variables or local `server/.env`). Both keys stay server-side; never use a `VITE_` prefix for the OpenRouter key. Gemini is tried first, then its existing `gemini-3.6-flash` fallback; if Gemini still fails, Nia uses OpenRouter (`OPENROUTER_MODEL`, default `openai/gpt-4o`). Restart/redeploy after changing server variables.
+- Set `GEMINI_API_KEY` and `OPENROUTER_API_KEY` in the server environment (Render Environment Variables or local `server/.env`). Both keys stay server-side; never use a `VITE_` prefix for the OpenRouter key. Gemini is tried first, then its existing `gemini-3.6-flash` fallback; if Gemini still fails, Nia uses OpenRouter (`OPENROUTER_MODEL`, default `openai/gpt-4o`). Gemini HTTP 429 responses are not retried; OpenRouter is used if configured, otherwise Nia shows a friendly usage-limit message. Restart/redeploy after changing server variables.
 - The frontend API base is a separate, public URL setting: `VITE_SUPPORT_API_BASE=https://help-support-2.onrender.com/api/support`.
 - Admin page > **Ask AI** tab: switch the option ON/OFF (when OFF clients do not see it), add extra notes for the AI, and test the connection.
 - The AI is called **Nia**. Scope: SMS, RCS, DLT, TRAI, error codes and this panel, plus greetings / small talk (greetings are answered instantly without calling Google). Any other topic is politely declined.

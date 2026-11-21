@@ -41,7 +41,7 @@ router.post('/ask', async (req, res) => {
   res.json(result);
 });
 
-// "Ask AI" (only when a Gemini key is set and the admin has not switched it off)
+// "Ask AI" (when an AI provider is configured and the admin has not switched it off)
 const hits = new Map(); // simple in-memory rate limit: 20 questions per 10 minutes per client
 router.post('/ai', async (req, res) => {
   if (!ai.isEnabled()) return res.status(503).json({ error: 'AI is disabled' });
@@ -57,6 +57,12 @@ router.post('/ai', async (req, res) => {
     res.json(result);
   } catch (e) {
     console.warn('[support] AI failed:', e.message, '| model:', ai.model());
+    if (e.quotaExceeded || e.code === 'AI_QUOTA_EXCEEDED') {
+      return res.status(503).json({
+        error: 'Nia has reached its current AI usage limit. Please try again later.',
+        code: 'AI_QUOTA_EXCEEDED',
+      });
+    }
     res.status(502).json({ error: 'AI is not available right now', detail: String(e.message || '').slice(0, 300) });
   }
 });
