@@ -196,6 +196,7 @@ export default function HelpSupportAdmin({ apiBase = '/api/support' }) {
         <h2>⚙️ Help &amp; Support - Admin</h2>
         <button className="hsa-btn" onClick={() => { try { sessionStorage.removeItem('hs-admin-key'); } catch { /* ignore */ } setAuthed(false); setKey(''); }}>Logout</button>
       </div>
+      {data.readOnly && <div className="hsa-msg bad" role="status">Admin edits are disabled on Vercel (read-only filesystem). Edit the seed files in server/support/data/seed and redeploy, or use a persistent server.</div>}
       <div className="hsa-tabs">{tabs.map(([k, n]) => <button key={k} className={tab === k ? 'on' : ''} onClick={() => { setTab(k); setForm(null); }}>{n}</button>)}</div>
       {msg && <div className={'hsa-msg ' + msg.type}>{msg.text}</div>}
 
@@ -220,8 +221,13 @@ export default function HelpSupportAdmin({ apiBase = '/api/support' }) {
               <td><button className="hsa-btn" onClick={() => setForm({ code: e.code, description: e.description, meaning: e.meaning || { hi: '', en: '' }, steps: { hi: join(e.steps?.hi), en: join(e.steps?.en) }, owner: e.owner || 'support', retry: !!e.retry, label: e.categoryLabel?.en || '' })}>Edit</button></td></tr>))}</tbody></table></>)}
           {tab === 'ai' && (ai ? (
             <div className="hsa-card">
-              <h3>Nia - AI assistant (Gemini)</h3>
-              <p className="hsa-note">API key status: {ai.configured ? <b style={{ color: '#067647' }}>set ✔</b> : <b style={{ color: '#b42318' }}>missing - add GEMINI_API_KEY in server/.env and restart the server</b>} · model: <code>{ai.model}</code></p>
+              <h3>Nia - AI assistant</h3>
+              <p className="hsa-note">
+                Gemini: {ai.geminiConfigured ? <b style={{ color: '#067647' }}>set</b> : <b style={{ color: '#b42318' }}>missing</b>}
+                {' · '}OpenRouter: {ai.openRouterConfigured ? <b style={{ color: '#067647' }}>set</b> : <b style={{ color: '#b42318' }}>missing</b>}
+                {!ai.configured && <span> - set GEMINI_API_KEY and/or OPENROUTER_API_KEY on the server</span>}
+                {' · '}Models: <code>{ai.model}</code> / <code>{ai.openRouterModel}</code>
+              </p>
               <label className="hsa-switch">
                 <input type="checkbox" checked={ai.aiEnabled} disabled={!ai.configured} onChange={(e) => saveAi({ aiEnabled: e.target.checked })} />
                 <span>{ai.aiEnabled ? 'Nia is ON - clients see the "Ask Nia" option' : 'Nia is OFF - the option is hidden for clients'}</span>

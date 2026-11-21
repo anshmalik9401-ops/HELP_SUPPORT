@@ -7,6 +7,7 @@ const path = require('path');
 const DATA = path.join(__dirname, 'data');
 const SEED_DIR = path.join(DATA, 'seed');
 const CUSTOM_FILE = path.join(DATA, 'custom.json');
+const VERCEL_READ_ONLY_MESSAGE = 'Admin edits are disabled on Vercel (read-only filesystem). Edit the seed files in server/support/data/seed and redeploy, or use a persistent server.';
 
 const emptyCustom = () => ({ faqs: {}, categories: {}, videos: {}, errors: {}, settings: {} });
 let cache = null; // { stamp, content }
@@ -19,6 +20,7 @@ function readCustom() {
 }
 
 function writeCustom(custom) {
+  if (process.env.VERCEL) throw new Error(VERCEL_READ_ONLY_MESSAGE);
   const tmp = CUSTOM_FILE + '.tmp';
   fs.writeFileSync(tmp, JSON.stringify(custom, null, 2));
   fs.renameSync(tmp, CUSTOM_FILE);
@@ -78,4 +80,4 @@ function getContent() {
   return cache.content;
 }
 
-module.exports = { getContent, readCustom, writeCustom, DATA };
+module.exports = { getContent, readCustom, writeCustom, DATA, VERCEL_READ_ONLY_MESSAGE };

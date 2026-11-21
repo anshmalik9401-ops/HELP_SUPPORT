@@ -3,7 +3,7 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
-const { getContent, readCustom, writeCustom } = require('./content');
+const { getContent, readCustom, writeCustom, VERCEL_READ_ONLY_MESSAGE } = require('./content');
 const store = require('./store');
 const ai = require('./ai');
 
@@ -15,6 +15,13 @@ router.use((req, res, next) => {
   const key = process.env.ADMIN_KEY;
   if (!key) return res.status(403).json({ error: 'Admin disabled: set ADMIN_KEY in server/.env' });
   if (req.get('x-admin-key') !== key) return res.status(401).json({ error: 'Wrong admin key' });
+  next();
+});
+
+router.use((req, res, next) => {
+  const isWrite = ['PUT', 'DELETE'].includes(req.method)
+    || (req.method === 'POST' && req.path === '/upload');
+  if (process.env.VERCEL && isWrite) return res.status(501).json({ error: VERCEL_READ_ONLY_MESSAGE });
   next();
 });
 
@@ -57,7 +64,7 @@ router.get('/data', (_req, res) => {
   const c = getContent();
   // a video that came from a reference is sent back as {ref} so the form edits the reference, not a copy
   const faqs = c.faqs.map((f) => ({ ...f, video: f.video && f.video.ref ? { ref: f.video.ref } : f.video }));
-  res.json({ categories: c.categories, videos: c.videos, faqs, errorCount: c.errors.length, customErrors: Object.keys(c.raw.custom.errors || {}) });
+  res.json({ categories: c.categories, videos: c.videos, faqs, errorCount: c.errors.length, customErrors: Object.keys(c.raw.custom.errors || {}), readOnly: !!process.env.VERCEL });
 });
 
 router.get('/errors', (req, res) => {
@@ -138,7 +145,15 @@ router.get('/unanswered', async (_req, res) => res.json(await store.list('unansw
 // ---- AI settings (switch on/off, extra notes for the AI)
 const settingsView = () => {
   const st = readCustom().settings;
-  return { aiEnabled: st.aiEnabled !== false, aiNotes: st.aiNotes || '', configured: ai.isConfigured(), model: ai.model() };
+  return {
+    aiEnabled: ai.isEnabled(),
+    aiNotes: st.aiNotes || '',
+    configured: ai.isConfigured(),
+    geminiConfigured: ai.isGeminiConfigured(),
+    openRouterConfigured: ai.isOpenRouterConfigured(),
+    model: ai.model(),
+    openRouterModel: ai.openRouterModel(),
+  };
 };
 router.get('/settings', (_req, res) => res.json(settingsView()));
 router.put('/settings', (req, res) => {
@@ -151,8 +166,11 @@ router.put('/settings', (req, res) => {
 });
 // quick check that the key / model work
 router.post('/ai-test', async (_req, res) => {
-  if (!ai.isConfigured()) return res.status(400).json({ error: 'GEMINI_API_KEY is not set in server/.env' });
-  try { res.json({ ok: true, reply: await ai.callGemini('Reply with the single word: OK', [{ role: 'user', parts: [{ text: 'ping' }] }]) }); }
+  if (!ai.isConfigured()) return res.status(400).json({ error: 'Set GEMINI_API_KEY and/or OPENROUTER_API_KEY in the server environment' });
+  try {
+    const reply = await ai.callAI('Reply with the single word: OK', [{ role: 'user', parts: [{ text: 'ping' }] }]);
+    res.json({ ok: true, provider: ai.provider(), reply });
+  }
   catch (e) { res.status(502).json({ error: e.message }); }
 });
 

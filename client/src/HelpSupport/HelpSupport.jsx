@@ -447,7 +447,6 @@ export default function HelpSupport({ apiBase = '/api/support', user = null, cla
 
   const inputDisabled = !lang || ended;
   const placeholder = ended ? L.phEnded : !lang ? L.phLang : L.ph;
-  const AI_KINDS = new Set(['aiIntro', 'aiAnswer', 'aiOffer', 'aiErr']);
   const wide = new Set(['mail', 'errors', 'faq', 'video', 'videoList', 'aiAnswer', 'aiOffer', 'aiErr']);
 
   return (
@@ -469,14 +468,14 @@ export default function HelpSupport({ apiBase = '/api/support', user = null, cla
       <div className="hs-body" aria-live="polite">
         {msgs.map((m) => (
           <div key={m.id} className={`hs-row ${m.from}`}>
-            {m.from === 'bot' && (AI_KINDS.has(m.kind) ? <div className="hs-bot-av hs-bot-ai"><NiaFace size={30} /></div> : <div className="hs-bot-av">🤖</div>)}
+            {m.from === 'bot' && <div className="hs-bot-av hs-bot-ai"><NiaFace size={30} /></div>}
             <div className={`hs-bubble ${m.from} ${wide.has(m.kind) ? 'wide' : ''}`}>
               {m.from === 'bot' ? renderBot(m) : renderUser(m)}
             </div>
           </div>
         ))}
         {typing && (
-          <div className="hs-row bot"><div className={'hs-bot-av' + (aiMode ? ' hs-bot-ai' : '')}>{aiMode ? <NiaFace size={30} /> : '🤖'}</div><div className="hs-bubble bot hs-typing"><i /><i /><i /></div></div>
+          <div className="hs-row bot"><div className="hs-bot-av hs-bot-ai"><NiaFace size={30} /></div><div className="hs-bubble bot hs-typing"><i /><i /><i /></div></div>
         )}
         <div ref={bottomRef} />
       </div>

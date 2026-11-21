@@ -1,20 +1,26 @@
-// "Ask AI": answers a free-text question with Google Gemini.
+// "Ask AI": answers a free-text question with Gemini and an OpenRouter fallback.
 // The answer is grounded in our own knowledge base (matching Q&A + error codes + admin notes);
 // for anything we do not cover, the model may use its general knowledge of SMS / DLT / RCS.
 const { getContent, readCustom } = require('./content');
 const { retrieve, findErrorCodes } = require('./matcher');
 
 let suggestedModel = null; // set automatically when Google says a model was retired and names its replacement
+let activeProvider = null;
 const MODEL = () => suggestedModel || process.env.GEMINI_MODEL || 'gemini-3.8-flash';
 const FALLBACK_MODEL = () => process.env.GEMINI_FALLBACK_MODEL || 'gemini-3.6-flash';
+const OPENROUTER_MODEL = () => process.env.OPENROUTER_MODEL || 'openai/gpt-4o';
 // Two kinds of Google keys exist: "AIza..." (Google AI Studio) and "AQ...." (Vertex AI express mode).
 // Each one works only with its own endpoint, so the endpoint is picked from the key format.
 const isVertexKey = () => /^AQ\./.test(process.env.GEMINI_API_KEY || '');
 const endpoint = (model) => `${process.env.GEMINI_BASE_URL}/models/${model}:generateContent`; // only used when GEMINI_BASE_URL is set (testing)
 
-const isConfigured = () => !!process.env.GEMINI_API_KEY;
+const isGeminiConfigured = () => !!process.env.GEMINI_API_KEY;
+const isOpenRouterConfigured = () => !!process.env.OPENROUTER_API_KEY;
+const isConfigured = () => isGeminiConfigured() || isOpenRouterConfigured();
 // Enabled = key present AND not switched off by the admin (default: on)
-const isEnabled = () => isConfigured() && readCustom().settings.aiEnabled !== false;
+const isEnabled = () => isConfigured()
+  && String(process.env.AI_ENABLED || '').trim().toLowerCase() !== 'false'
+  && readCustom().settings.aiEnabled !== false;
 
 const CORE_FACTS = [
   'Panel: Nimbus SMS & RCS user panel (' + (process.env.PANEL_URL || 'https://omnidigital.co.in/') + ').',
@@ -145,6 +151,7 @@ async function callGemini(system, contents, retried = false, model = MODEL(), fa
     try {
       const text = await callWithRetry(url, system, contents, model);
       workingEndpoint = url;
+      activeProvider = 'Gemini';
       if (model !== MODEL()) {
         suggestedModel = model;
         console.warn('[support] AI switched to fallback model', model);
@@ -167,6 +174,70 @@ async function callGemini(system, contents, retried = false, model = MODEL(), fa
     return callGemini(system, contents, retried, fallbackModel, true);
   }
   throw lastErr;
+}
+
+async function callOpenRouter(system, contents) {
+  const ctl = new AbortController();
+  const timer = setTimeout(() => ctl.abort(), 25000);
+  try {
+    const messages = [
+      { role: 'system', content: system },
+      ...contents
+        .map((entry) => ({
+          role: entry.role === 'model' ? 'assistant' : entry.role,
+          content: (entry.parts || []).map((part) => part.text || '').join('').trim(),
+        }))
+        .filter((entry) => ['user', 'assistant'].includes(entry.role) && entry.content),
+    ];
+    const r = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      signal: ctl.signal,
+      headers: {
+        Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': process.env.OPENROUTER_SITE_URL || process.env.PANEL_URL || 'https://omnidigital.co.in/',
+        'X-Title': process.env.BRAND_NAME || 'Nimbus Help & Support',
+      },
+      body: JSON.stringify({
+        model: OPENROUTER_MODEL(),
+        messages,
+        temperature: 0.5,
+        max_tokens: 2048,
+      }),
+    });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) {
+      const e = new Error(`HTTP ${r.status}: ${j.error?.message || r.statusText || ''}`.trim());
+      e.status = r.status;
+      throw e;
+    }
+    const text = j.choices?.[0]?.message?.content;
+    const answer = Array.isArray(text)
+      ? text.map((part) => part.text || '').join('').trim()
+      : String(text || '').trim();
+    if (!answer) throw new Error('OpenRouter returned an empty answer');
+    activeProvider = 'OpenRouter';
+    return answer;
+  } catch (e) {
+    if (e.name === 'AbortError') throw new Error('Timeout: OpenRouter did not answer in 25 seconds');
+    if (e.status === undefined) throw new Error('Cannot reach OpenRouter (' + (e.cause?.code || e.message) + ')');
+    throw e;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function callAI(system, contents) {
+  if (isGeminiConfigured()) {
+    try {
+      return await callGemini(system, contents);
+    } catch (e) {
+      if (!isOpenRouterConfigured()) throw e;
+      console.warn(`[support] Gemini unavailable (${e.message}); trying OpenRouter`);
+    }
+  }
+  if (isOpenRouterConfigured()) return callOpenRouter(system, contents);
+  throw new Error('Set GEMINI_API_KEY and/or OPENROUTER_API_KEY to enable Nia');
 }
 
 /**
@@ -202,7 +273,7 @@ async function ask(text, lang = 'en', history = []) {
   // Gemini requires the first turn to be a user turn
   while (contents.length > 1 && contents[0].role !== 'user') contents.shift();
 
-  let answer = await callGemini(system, contents);
+  let answer = await callAI(system, contents);
   // the model tags where the answer came from; strip the tag and tell the client
   const tag = answer.match(/\[\[\s*SOURCE\s*:\s*(KB|GENERAL|CHAT)\s*\]\]/i);
   answer = answer.replace(/\[\[\s*SOURCE\s*:[^\]]*\]\]/gi, '').trim();
@@ -212,4 +283,16 @@ async function ask(text, lang = 'en', history = []) {
   return { type: 'ai', text: answer.slice(0, 3000), general, chat, faqIds: general || chat ? [] : faqs.slice(0, 2).map((f) => f.id) };
 }
 
-module.exports = { ask, isConfigured, isEnabled, model: MODEL, callGemini };
+module.exports = {
+  ask,
+  isConfigured,
+  isEnabled,
+  isGeminiConfigured,
+  isOpenRouterConfigured,
+  model: MODEL,
+  openRouterModel: OPENROUTER_MODEL,
+  provider: () => activeProvider || (isGeminiConfigured() ? 'Gemini' : 'OpenRouter'),
+  callGemini,
+  callOpenRouter,
+  callAI,
+};

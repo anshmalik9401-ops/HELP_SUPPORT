@@ -16,10 +16,10 @@ store.init().finally(() => app.listen(PORT, () => {
   if (!process.env.ADMIN_KEY) console.log('[support] Admin page disabled - set ADMIN_KEY in .env to use "Add more"');
 }));
 
-// Startup check: tells you right away in the terminal whether Nia (Gemini) works
+// Startup check: tells you right away whether Nia's configured AI provider works
 (async () => {
   const ai = require('./support/ai');
-  if (!ai.isConfigured()) return console.log('[support] AI: GEMINI_API_KEY not set - Nia is off');
-  try { const r = await ai.callGemini('Reply with the single word: OK', [{ role: 'user', parts: [{ text: 'ping' }] }]); console.log('[support] AI check: OK (' + ai.model() + ') ->', r.slice(0, 20)); }
+  if (!ai.isConfigured()) return console.log('[support] AI: no Gemini or OpenRouter API key set - Nia is off');
+  try { const r = await ai.callAI('Reply with the single word: OK', [{ role: 'user', parts: [{ text: 'ping' }] }]); console.log('[support] AI check: OK (' + ai.provider() + ') ->', r.slice(0, 20)); }
   catch (e) { console.warn('[support] AI check FAILED:', e.message); }
 })();

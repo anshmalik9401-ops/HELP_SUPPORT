@@ -1,0 +1,16 @@
+node_modules/
+dist/
+logs/
+.env
+.env.*
+!.env.example
+server/.env
+server/.env.*
+!server/.env.example
+client/.env
+client/.env.*
+!client/.env.example
+server/support/data/custom.json
+server/public/media/uploads/
+.vercel/
+.vercel

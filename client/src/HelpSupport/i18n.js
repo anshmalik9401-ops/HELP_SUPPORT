@@ -1,8 +1,8 @@
 // All UI texts. hi = Hinglish (Hindi in English letters), en = English.
 export const T = {
   hi: {
-    title: 'Help & Support', subtitle: 'Q&A madad kendra',
-    intro: 'Main aapki madad ke liye yahan hoon 😊 Neeche se apna topic chunein, ya apna sawal / error code box me type karein.',
+    title: 'Help & Support', subtitle: 'Nia · SMS/RCS madad',
+    intro: 'Namaste! Main Nia hoon 😊 Neeche se apna topic chunein, ya apna sawal / error code box me type karein.',
     notInList: '❓ Mera sawal list me nahi hai', finishChat: '✅ Chat khatam karein',
     pickQuestion: (c) => `"${c}" se related sawal chunein:`, backMenu: '⬅ Main menu',
     helpfulQ: 'Kya ye jawab helpful tha?', yes: '👍 Haan', no: '👎 Nahi',
@@ -38,8 +38,8 @@ export const T = {
     loadFail: 'Help & Support abhi load nahi ho paya.',
   },
   en: {
-    title: 'Help & Support', subtitle: 'Q&A Assistant',
-    intro: "I'm here to help 😊 Pick a topic below, or type your question / error code in the box.",
+    title: 'Help & Support', subtitle: 'Nia · SMS/RCS help',
+    intro: "Hi, I'm Nia 😊 Pick a topic below, or type your question / error code in the box.",
     notInList: '❓ My question is not listed', finishChat: '✅ Finish chat',
     pickQuestion: (c) => `Select a question about "${c}":`, backMenu: '⬅ Main menu',
     helpfulQ: 'Was this answer helpful?', yes: '👍 Yes', no: '👎 No',
