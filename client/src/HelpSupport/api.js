@@ -11,7 +11,7 @@ export const makeApi = (apiBase) => {
     ask: (text, lang, sessionId) => post('/ask', { text, lang, sessionId }),
     ai: (text, lang, history, sessionId) => post('/ai', { text, lang, history, sessionId }),
     feedback: (data) => post('/feedback', data).catch(() => {}),
-    // screenshots / videos are stored as "/media/..." and are served by the same router
-    media: (src) => (src && src.startsWith('/media/') ? apiBase + src : src),
+    // Production serves bundled media from the frontend; Vite dev uses the local API route.
+    media: (src) => (src && src.startsWith('/media/') ? (import.meta.env.DEV ? apiBase + src : src) : src),
   };
 };

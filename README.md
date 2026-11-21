@@ -16,6 +16,7 @@ Demo shell me left menu me sirf "Help & Support" hai. Admin page: `http://localh
 - In **Project > Settings > Environment Variables**, set `GEMINI_API_KEY`, `OPENROUTER_API_KEY`, `ADMIN_KEY`, `SUPPORT_EMAIL`, `BRAND_NAME`, and `PANEL_URL`. Optionally set `GEMINI_MODEL` (default `gemini-3.8-flash`), `GEMINI_FALLBACK_MODEL` (default `gemini-3.6-flash`), `OPENROUTER_MODEL` (default `openai/gpt-4o`), `MONGO_URI`, and `AI_ENABLED=false` to turn Nia off.
 - MongoDB is optional; without `MONGO_URI`, feedback and unanswered-query file logs are skipped on Vercel. Admin reads work, but edits/uploads return 501 because the filesystem is read-only; edit seed files under `server/support/data/seed` and redeploy.
 - The frontend uses same-origin `/api/support` by default. If the API is hosted separately, set the frontend build variable `VITE_SUPPORT_API_BASE`, for example `https://help-support-2.onrender.com/api/support`.
+- The client build copies `server/public/media/img` and `server/public/media/videos` into its static `/media/` directory; local Vite development continues to load media through the support API.
 - Never add `.env` files or API keys to Git. Local standalone usage remains `cd server && npm start` and `cd client && npm run dev`.
 
 ## Senior ko panel me add karna ho to
