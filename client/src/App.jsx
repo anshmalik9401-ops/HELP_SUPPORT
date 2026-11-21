@@ -5,7 +5,8 @@ import { useEffect, useState } from 'react';
 import HelpSupport from './HelpSupport/HelpSupport.jsx';
 import HelpSupportAdmin from './HelpSupport/HelpSupportAdmin.jsx';
 
-const API = (import.meta.env.VITE_SUPPORT_API_BASE || import.meta.env.VITE_API_BASE || '/api/support').replace(/\/+$/, '');
+const DEFAULT_API = import.meta.env.DEV ? '/api/support' : 'https://help-support-2.onrender.com/api/support';
+const API = (import.meta.env.VITE_SUPPORT_API_BASE || import.meta.env.VITE_API_BASE || DEFAULT_API).replace(/\/+$/, '');
 
 export default function App() {
   const [admin, setAdmin] = useState(() => window.location.hash === '#admin');
