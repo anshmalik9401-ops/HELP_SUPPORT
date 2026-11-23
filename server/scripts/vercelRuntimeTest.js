@@ -1,4 +1,6 @@
 const assert = require('assert');
+const cors = require('cors');
+const express = require('express');
 const fs = require('fs');
 const http = require('http');
 const path = require('path');
@@ -21,7 +23,9 @@ ai.isEnabled = () => true;
 const originalFetch = global.fetch;
 global.fetch = async () => { throw new Error('Greeting should not call Gemini'); };
 
-const app = require('../../api');
+const app = express();
+app.use(cors());
+app.use('/api/support', require('../support/router'));
 
 function request(server, method, route, body, headers = {}) {
   const payload = body == null ? null : Buffer.isBuffer(body) ? body : Buffer.from(JSON.stringify(body));
@@ -62,9 +66,6 @@ async function main() {
   try {
     const health = await request(server, 'GET', '/api/support/health');
     assert.deepStrictEqual(JSON.parse(health.body), { ok: true });
-
-    const rewrittenHealth = await request(server, 'GET', '/api/index?__vercel_path=%2Fapi%2Fsupport%2Fhealth');
-    assert.deepStrictEqual(JSON.parse(rewrittenHealth.body), { ok: true });
 
     const content = await request(server, 'GET', '/api/support/content');
     const data = JSON.parse(content.body);

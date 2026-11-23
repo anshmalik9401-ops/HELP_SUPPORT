@@ -29,23 +29,20 @@ const CORE_FACTS = [
   'Support email: ' + (process.env.SUPPORT_EMAIL || 'support1@nimbusitsolutions.com') + '.',
 ];
 
-// Plain-text rendering of a Q&A entry in the requested language
-function faqText(f, lang) {
-  const steps = (f.steps && f.steps[lang]) || [];
-  return [`Q: ${f.question[lang]}`, `A: ${f.answer[lang]}`, steps.length ? 'Steps:\n' + steps.map((s, i) => `${i + 1}. ${s}`).join('\n') : ''].filter(Boolean).join('\n');
+// Plain-text rendering of an English Q&A entry
+function faqText(f) {
+  const steps = (f.steps && f.steps.en) || [];
+  return [`Q: ${f.question.en}`, `A: ${f.answer.en}`, steps.length ? 'Steps:\n' + steps.map((s, i) => `${i + 1}. ${s}`).join('\n') : ''].filter(Boolean).join('\n');
 }
-function errorText(e, lang) {
-  const steps = (e.steps && e.steps[lang]) || [];
-  return [`Error code ${e.code}: ${e.description}`, e.meaning ? `Meaning: ${e.meaning[lang]}` : '', steps.length ? 'Fix:\n' + steps.map((s, i) => `${i + 1}. ${s}`).join('\n') : ''].filter(Boolean).join('\n');
+function errorText(e) {
+  const steps = (e.steps && e.steps.en) || [];
+  return [`Error code ${e.code}: ${e.description}`, e.meaning ? `Meaning: ${e.meaning.en}` : '', steps.length ? 'Fix:\n' + steps.map((s, i) => `${i + 1}. ${s}`).join('\n') : ''].filter(Boolean).join('\n');
 }
 
-function buildPrompt(lang, kb, notes) {
-  const language = lang === 'hi'
-    ? 'Hinglish (Hindi written in English/Roman letters, natural and friendly, like a helpful colleague). Never use Devanagari script.'
-    : 'natural, friendly, clear English.';
+function buildPrompt(kb, notes) {
   const mail = process.env.SUPPORT_EMAIL || 'support1@nimbusitsolutions.com';
   return [
-    `You are Nia, the AI assistant inside the Nimbus SMS & RCS user panel. Talk like a real, friendly AI assistant: warm, natural and conversational, not robotic. Always reply in ${language}`,
+    'You are Nia, the AI assistant inside the Nimbus SMS & RCS user panel. Talk like a real, friendly AI assistant: warm, natural and conversational, not robotic. Always reply in natural, friendly, clear English.',
     '',
     'YOUR SCOPE - you only talk about:',
     '- Bulk SMS, RCS messaging, DLT (entity, header / sender ID, template, consent, scrubbing, URL / CTA whitelisting, operators), TRAI rules, delivery reports and error codes, APIs for sending SMS / RCS, and how to use this panel.',
@@ -257,26 +254,22 @@ async function callAI(system, contents) {
  *                           | { type: 'ai', text, general, faqIds }  (general = answered outside our knowledge base)
  * history = [{ role: 'user' | 'bot', text }] (last few turns, optional)
  */
-const GREET = /^(hi+|hii+|hello+|hey+|hy|helo|namaste|namaskar|good (morning|afternoon|evening)|gm|ge|how are you|how r u|kaise ho|kese ho|kaisi ho|kya haal|haal chaal|haal chal|sab theek|whats up|what's up|sup)\b[\s!?.,a-z]*$/i;
-const THANKS = /^(thanks?|thank you|thx|shukriya|dhanyavaad|dhanyavad|ok thanks|okay thanks|bye|goodbye|tata|alvida)\b[\s!?.,a-z]*$/i;
-const SMALL_TALK = {
-  hi: ['Namaste! Main Nia hoon 😊 Main theek hoon, aap kaise hain? Bataiye, SMS, RCS, DLT ya TRAI se related kya madad chahiye?'],
-  en: ["Hello! I'm Nia 😊 I'm doing great, thanks for asking. How can I help you today with SMS, RCS, DLT or TRAI?"],
-};
-const BYE = { hi: 'Dhanyavaad! Kabhi bhi SMS, RCS ya DLT ka koi sawal ho to Nia yahin hai 😊', en: "You're welcome! Whenever you have a question about SMS, RCS or DLT, Nia is right here 😊" };
+const GREET = /^(hi+|hii+|hello+|hey+|good (morning|afternoon|evening)|how are you|how r u|what'?s up|sup)\b[\s!?.,a-z]*$/i;
+const THANKS = /^(thanks?|thank you|thx|ok thanks|okay thanks|bye|goodbye)\b[\s!?.,a-z]*$/i;
+const SMALL_TALK = "Hello! I'm Nia 😊 I'm doing great, thanks for asking. How can I help you today with SMS, RCS, DLT or TRAI?";
+const BYE = "You're welcome! Whenever you have a question about SMS, RCS or DLT, Nia is right here 😊";
 
 async function ask(text, lang = 'en', history = []) {
   const q = clean(text, 500);
   const codes = findErrorCodes(q);
   if (codes.length) return { type: 'error', matches: codes };
   // plain greetings / thanks are answered locally (instant, no API call)
-  if (q.length < 40 && GREET.test(q)) return { type: 'ai', text: SMALL_TALK[lang === 'hi' ? 'hi' : 'en'][0], general: false, chat: true, faqIds: [] };
-  if (q.length < 40 && THANKS.test(q)) return { type: 'ai', text: BYE[lang === 'hi' ? 'hi' : 'en'], general: false, chat: true, faqIds: [] };
+  if (q.length < 40 && GREET.test(q)) return { type: 'ai', text: SMALL_TALK, general: false, chat: true, faqIds: [] };
+  if (q.length < 40 && THANKS.test(q)) return { type: 'ai', text: BYE, general: false, chat: true, faqIds: [] };
 
-  const L = lang === 'hi' ? 'hi' : 'en';
   const { faqs, errors } = retrieve(q, 4);
-  const kb = [...faqs.map((f) => faqText(f, L)), ...errors.map((e) => errorText(e, L))];
-  const system = buildPrompt(L, kb, clean(readCustom().settings.aiNotes, 4000));
+  const kb = [...faqs.map(faqText), ...errors.map(errorText)];
+  const system = buildPrompt(kb, clean(readCustom().settings.aiNotes, 4000));
 
   const contents = (Array.isArray(history) ? history : []).slice(-6)
     .filter((h) => h && (h.role === 'user' || h.role === 'bot') && h.text)

@@ -1,22 +1,22 @@
 [
   {
     "id": "dlt-mapping", "order": 1, "type": "file", "url": "/media/videos/dlt-mapping.mp4",
-    "title": { "hi": "DLT se panel par Entity / Sender / Template mapping kaise karein", "en": "How to map DLT Entity / Sender / Template in the panel" },
-    "description": { "hi": "Entity, Sender aur Template add karna aur template me sender map karna - step by step.", "en": "Add Entity, Sender and Template and map the sender to the template - step by step." }
+    "title": { "en": "How to map DLT Entity / Sender / Template in the panel" },
+    "description": { "en": "Add Entity, Sender and Template and map the sender to the template - step by step." }
   },
   {
     "id": "sms-flow", "order": 2, "type": "file", "url": "/media/videos/sms-flow.mp4",
-    "title": { "hi": "SMS bhejne ka pura flow", "en": "Complete SMS sending flow" },
-    "description": { "hi": "Compose SMS se campaign run karne tak ka poora process.", "en": "The full process from Compose SMS to running the campaign." }
+    "title": { "en": "Complete SMS sending flow" },
+    "description": { "en": "The full process from Compose SMS to running the campaign." }
   },
   {
     "id": "rcs-template", "order": 3, "type": "file", "url": "/media/videos/rcs-template.mp4",
-    "title": { "hi": "RCS template kaise banayein", "en": "How to create an RCS template" },
-    "description": { "hi": "Bot select karke PlainText / Rich Card / Carousel template banana.", "en": "Select a bot and create a PlainText / Rich Card / Carousel template." }
+    "title": { "en": "How to create an RCS template" },
+    "description": { "en": "Select a bot and create a PlainText / Rich Card / Carousel template." }
   },
   {
     "id": "rcs-campaign", "order": 4, "type": "file", "url": "/media/videos/rcs-campaign.mp4",
-    "title": { "hi": "RCS campaign kaise run karein", "en": "How to run an RCS campaign" },
-    "description": { "hi": "Approved template aur bot se RCS campaign banakar run karna.", "en": "Create and run an RCS campaign with an approved template and bot." }
+    "title": { "en": "How to run an RCS campaign" },
+    "description": { "en": "Create and run an RCS campaign with an approved template and bot." }
   }
 ]

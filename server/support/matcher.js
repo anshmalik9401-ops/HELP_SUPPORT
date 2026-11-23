@@ -44,7 +44,7 @@ function scoreFaq(faq, userNorm, userWords) {
     if (kn.includes(' ')) { if (userNorm.includes(kn)) score += 3 + kn.split(' ').length; }
     else if (userWords.includes(kn)) score += 2;
   }
-  const qWords = new Set([...words(faq.question.hi), ...words(faq.question.en)]);
+  const qWords = new Set(words(faq.question.en));
   for (const w of userWords) if (qWords.has(w)) score += 1;
   return score;
 }

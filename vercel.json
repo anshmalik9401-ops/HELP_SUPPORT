@@ -3,12 +3,6 @@
   "installCommand": "if [ -f client/package.json ]; then npm install && npm --prefix client install; else npm install; fi",
   "buildCommand": "if [ -f client/package.json ]; then npm --prefix client run build && mkdir -p dist && cp -R client/dist/. dist/; else npm run build; fi",
   "outputDirectory": "dist",
-  "functions": {
-    "api/index.js": {
-      "maxDuration": 60,
-      "includeFiles": "server/{public/media/**,support/data/**}"
-    }
-  },
   "rewrites": [
     {
       "source": "/api/:path*",

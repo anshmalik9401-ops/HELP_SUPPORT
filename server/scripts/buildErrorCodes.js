@@ -77,9 +77,9 @@ fs.writeFileSync(OUT_JSON, JSON.stringify(out, null, 1));
 
 // Review sheet for the user (opens in Excel; BOM for UTF-8)
 const q = (s) => '"' + String(s).replace(/"/g, '""') + '"';
-const header = ['Code', 'Operator Description', 'Also Reported As', 'Category', 'Meaning (Hinglish)', 'Meaning (English)', 'Fix Steps (English)', 'Who Fixes', 'Retry Useful?', 'Hand-written?'];
+const header = ['Code', 'Operator Description', 'Also Reported As', 'Category', 'Meaning', 'Fix Steps', 'Who Fixes', 'Retry Useful?', 'Hand-written?'];
 const lines = [header.map(q).join(',')];
-for (const e of out) lines.push([e.code, e.description, e.alsoReportedAs.join(' | '), e.categoryLabel.en, e.meaning.hi, e.meaning.en, e.steps.en.join(' / '), e.owner, e.retry ? 'Yes' : 'No', e.reviewed ? 'Yes' : 'Generic'].map(q).join(','));
+for (const e of out) lines.push([e.code, e.description, e.alsoReportedAs.join(' | '), e.categoryLabel.en, e.meaning.en, e.steps.en.join(' / '), e.owner, e.retry ? 'Yes' : 'No', e.reviewed ? 'Yes' : 'Generic'].map(q).join(','));
 fs.writeFileSync(OUT_CSV, '﻿' + lines.join('\r\n'));
 
 const byCat = {}; out.forEach(e => byCat[e.category] = (byCat[e.category] || 0) + 1);

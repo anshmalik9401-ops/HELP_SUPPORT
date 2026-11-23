@@ -41,9 +41,9 @@ router.use(express.json({ limit: '500kb' }));
 
 const slug = (s) => String(s || '').toLowerCase().replace(/[^a-z0-9_-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60);
 const str = (v) => String(v ?? '').trim();
-const pair = (o) => ({ hi: str(o?.hi), en: str(o?.en) });
+const pair = (o) => ({ en: str(o?.en ?? o) });
 const lines = (v) => (Array.isArray(v) ? v : String(v || '').split('\n')).map((x) => str(x)).filter(Boolean);
-const pairLines = (o) => ({ hi: lines(o?.hi), en: lines(o?.en) });
+const pairLines = (o) => ({ en: lines(o?.en ?? o) });
 
 function cleanFaq(b, id) {
   const video = b.video && (b.video.ref ? { ref: slug(b.video.ref) } : b.video.url ? { type: b.video.type === 'youtube' ? 'youtube' : 'file', url: str(b.video.url), title: pair(b.video.title) } : null);
@@ -77,7 +77,7 @@ router.get('/errors', (req, res) => {
 router.put('/faq/:id', (req, res) => {
   const id = slug(req.params.id);
   const f = cleanFaq(req.body || {}, id);
-  if (!id || !f.category || !f.question.en || !f.question.hi || !f.answer.en || !f.answer.hi) return res.status(400).json({ error: 'id, category, question and answer (Hindi + English) are required' });
+  if (!id || !f.category || !f.question.en || !f.answer.en) return res.status(400).json({ error: 'id, category, question, and answer are required' });
   const custom = readCustom(); custom.faqs[id] = f; writeCustom(custom);
   res.json({ ok: true, id });
 });
@@ -93,7 +93,7 @@ router.delete('/faq/:id', (req, res) => {
 // ---- Categories (menu topics)
 router.put('/category/:id', (req, res) => {
   const id = slug(req.params.id); const b = req.body || {};
-  if (!id || !str(b.title?.hi) || !str(b.title?.en)) return res.status(400).json({ error: 'id and title (Hindi + English) required' });
+  if (!id || !str(b.title?.en)) return res.status(400).json({ error: 'id and title are required' });
   const custom = readCustom();
   custom.categories[id] = { id, icon: str(b.icon) || '📁', title: pair(b.title), order: Number(b.order) || 500, ...(b.special === 'videos' ? { special: 'videos' } : {}) };
   writeCustom(custom); res.json({ ok: true });
@@ -107,7 +107,7 @@ router.delete('/category/:id', (req, res) => {
 // ---- Demo videos
 router.put('/video/:id', (req, res) => {
   const id = slug(req.params.id); const b = req.body || {};
-  if (!id || !str(b.url) || !str(b.title?.hi) || !str(b.title?.en)) return res.status(400).json({ error: 'id, title (Hindi + English) and url required' });
+  if (!id || !str(b.url) || !str(b.title?.en)) return res.status(400).json({ error: 'id, title, and URL are required' });
   const custom = readCustom();
   custom.videos[id] = { id, type: b.type === 'youtube' ? 'youtube' : 'file', url: str(b.url), title: pair(b.title), description: pair(b.description), order: Number(b.order) || 500 };
   writeCustom(custom); res.json({ ok: true });
@@ -122,15 +122,15 @@ router.delete('/video/:id', (req, res) => {
 const OWNERS = ['client', 'support', 'operator', 'none'];
 router.put('/error/:code', (req, res) => {
   const code = str(req.params.code).toUpperCase().slice(0, 12); const b = req.body || {};
-  if (!code || !str(b.meaning?.hi) || !str(b.meaning?.en)) return res.status(400).json({ error: 'code and meaning (Hindi + English) required' });
+  if (!code || !str(b.meaning?.en)) return res.status(400).json({ error: 'code and meaning are required' });
   const exists = getContent().errors.find((e) => String(e.code).toUpperCase() === code);
   const custom = readCustom();
   custom.errors[code] = {
     code, description: str(b.description) || (exists && exists.description) || code,
     meaning: pair(b.meaning), steps: pairLines(b.steps),
     owner: OWNERS.includes(b.owner) ? b.owner : 'support', retry: !!b.retry, reviewed: true,
-    ...(exists ? {} : { alsoReportedAs: [], category: 'CUSTOM', categoryLabel: { hi: str(b.label) || 'Custom', en: str(b.label) || 'Custom' } }),
-    ...(b.label && exists ? { categoryLabel: { hi: str(b.label), en: str(b.label) } } : {}),
+    ...(exists ? {} : { alsoReportedAs: [], category: 'CUSTOM', categoryLabel: { en: str(b.label) || 'Custom' } }),
+    ...(b.label && exists ? { categoryLabel: { en: str(b.label) } } : {}),
   };
   writeCustom(custom); res.json({ ok: true });
 });

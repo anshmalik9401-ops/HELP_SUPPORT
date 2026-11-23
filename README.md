@@ -1,59 +1,86 @@
-# Nimbus Help & Support Q&A Chat (SMS + RCS panel)
+# Nimbus Help & Support
 
-Hinglish / English chat: greeting -> language -> topic menu -> answers with steps, screenshots, demo video -> free text / error code lookup -> mail fallback (support1@nimbusitsolutions.com) -> input disabled -> "New chat".
-104 Q&A, 687 error codes (with solution), URL whitelist answer, 4 demo-video placeholders.
+An English-only SMS and RCS support chat with topic-based answers, screenshots, demo videos, error-code lookup, email support, and optional AI assistance.
 
-## Local run (2 terminals)
+The content includes 104 Q&A entries, 687 error codes, URL-whitelisting guidance, and four demo videos.
+
+## Run locally
+
+Use two terminals:
+
+```powershell
+cd server
+npm install
+npm start
 ```
-cd server && npm install && npm start      # http://localhost:5000
-cd client && npm install && npm run dev    # http://localhost:5173
+
+```powershell
+cd client
+npm install
+npm run dev
 ```
-(Folder name me `&` na ho, warna Windows npm fail hota hai.)
-Demo shell me left menu me sirf "Help & Support" hai. Admin page: `http://localhost:5173/#admin` (ya page ke upar "Admin (add more)" link).
 
-## Deploy on Vercel
-- `vercel.json` builds the client and proxies relative `/api/*` requests to the Render API. The build commands support either the repository root or `client` as the Vercel Root Directory.
-- In **Project > Settings > Environment Variables**, set `GEMINI_API_KEY`, `OPENROUTER_API_KEY`, `ADMIN_KEY`, `SUPPORT_EMAIL`, `BRAND_NAME`, and `PANEL_URL`. Optionally set `GEMINI_MODEL` (default `gemini-3.8-flash`), `GEMINI_FALLBACK_MODEL` (default `gemini-3.6-flash`), `OPENROUTER_MODEL` (default `openai/gpt-4o`), `MONGO_URI`, and `AI_ENABLED=false` to turn Nia off.
-- MongoDB is optional; without `MONGO_URI`, feedback and unanswered-query file logs are skipped on Vercel. Admin reads work, but edits/uploads return 501 because the filesystem is read-only; edit seed files under `server/support/data/seed` and redeploy.
-- Local Vite development uses `/api/support` through the proxy. Production defaults to `https://help-support-2.onrender.com/api/support`; override it with the frontend build variable `VITE_SUPPORT_API_BASE` if needed.
-- The client build copies `server/public/media/img` and `server/public/media/videos` into its static `/media/` directory; local Vite development continues to load media through the support API.
-- Never add `.env` files or API keys to Git. Local standalone usage remains `cd server && npm start` and `cd client && npm run dev`.
+The API runs at `http://localhost:5000` and the client at `http://localhost:5173`. The admin page is at `http://localhost:5173/#admin`.
 
-## Senior ko panel me add karna ho to
-1. **Backend:** `server/support/` folder + `server/public/media/` (screenshots/videos) copy karein. Express app me:
+## Deploy
+
+- `vercel.json` builds the client and proxies `/api/*` requests to the Render API. The build supports using either the repository root or `client` as the Vercel Root Directory.
+- Configure `GEMINI_API_KEY`, `OPENROUTER_API_KEY`, `ADMIN_KEY`, `SUPPORT_EMAIL`, `BRAND_NAME`, and `PANEL_URL` in the deployment environment. Optional settings include `GEMINI_MODEL` (default `gemini-3.8-flash`), `GEMINI_FALLBACK_MODEL` (default `gemini-3.6-flash`), `OPENROUTER_MODEL` (default `openai/gpt-4o`), `MONGO_URI`, and `AI_ENABLED=false`.
+- MongoDB is optional. Without `MONGO_URI`, feedback and unanswered-query file logs are skipped on Vercel. Admin reads work there, but edits and uploads return 501 because the filesystem is read-only. Edit seed files and redeploy instead.
+- Local Vite development proxies `/api/support`. Production defaults to `https://help-support-2.onrender.com/api/support`; set `VITE_SUPPORT_API_BASE` to override it.
+- The client build copies `server/public/media/img` and `server/public/media/videos` into the static `/media/` directory. Local development serves media through the support API.
+- Keep `.env` files and API keys out of Git. For standalone local use, start the server and client as described above.
+
+## Integrate into another panel
+
+1. Copy `server/support/` and `server/public/media/` into the backend, then mount the router:
+
    ```js
    app.use('/api/support', require('./support/router'));
    ```
-   `server/.env.example` ke variables apne .env me daalein (`ADMIN_KEY` zaroori hai admin page ke liye). Router `/api/support/media/...` se images/videos khud serve karta hai.
-2. **Frontend:** `client/src/HelpSupport/` folder copy karein aur panel ke route/menu me lagayein:
+
+   Set the variables from `server/.env.example` in the server environment. `ADMIN_KEY` is required for the admin page. The router serves media under `/api/support/media/...`.
+
+2. Copy `client/src/HelpSupport/` and mount the chat in the panel:
+
    ```jsx
    import HelpSupport from './HelpSupport/HelpSupport.jsx';
+
    <HelpSupport apiBase="/api/support" user={{ name: loggedInUserName }} />
    ```
-   Admin: `<HelpSupportAdmin apiBase="/api/support" />` (sirf admin/staff route par lagayein).
-3. Theme colours `helpSupport.css` ke top ke variables me hain (panel blue/green).
-4. Optional: `MONGO_URI` set karein to unanswered/feedback logs MongoDB me jayenge, warna `server/logs/*.jsonl`.
 
-## Content kaise add / update karein ("add more")
-- **Admin page se (recommended):** Q&A, Topics, Videos, Error codes add/edit; screenshots/mp4 upload; "Unanswered" tab me clients ke bina-jawab sawal se seedha Q&A bana sakte hain. Changes `server/support/data/custom.json` me save hote hain aur chat me turant live.
-  - Shipped (seed) Q&A edit karoge to "Reset to original" se wapas ja sakte hain.
-- **Code se:** `server/support/data/seed/*.js` (Q&A), `videos.json`, `errorCodes.json` (`npm run build:errors` se bana; hand-written solutions `server/scripts/errorKnowledge.js` me).
-- **Demo videos replace karna:** abhi `server/public/media/videos/*.mp4` placeholder hain (dlt-mapping, sms-flow, rcs-template, rcs-campaign). Same naam ki real file rakh dein, ya Admin > Videos me upload / YouTube link do.
+   Mount `<HelpSupportAdmin apiBase="/api/support" />` only on an admin or staff route.
 
-## Nia - Ask AI (Gemini with OpenRouter fallback)
-- Set `GEMINI_API_KEY` and `OPENROUTER_API_KEY` in the server environment (Render Environment Variables or local `server/.env`). Both keys stay server-side; never use a `VITE_` prefix for the OpenRouter key. Gemini is tried first, then its existing `gemini-3.6-flash` fallback; if Gemini still fails, Nia uses OpenRouter (`OPENROUTER_MODEL`, default `openai/gpt-4o`). Gemini HTTP 429 responses are not retried; OpenRouter is used if configured, otherwise Nia shows a friendly usage-limit message. Restart/redeploy after changing server variables.
-- The frontend API base is a separate, public URL setting: `VITE_SUPPORT_API_BASE=https://help-support-2.onrender.com/api/support`.
-- Admin page > **Ask AI** tab: switch the option ON/OFF (when OFF clients do not see it), add extra notes for the AI, and test the connection.
-- The AI is called **Nia**. Scope: SMS, RCS, DLT, TRAI, error codes and this panel, plus greetings / small talk (greetings are answered instantly without calling Google). Any other topic is politely declined.
-- On server start the terminal prints `[support] AI check: OK` or `AI check FAILED: <reason>` - read this first if Nia does not answer.
--  It answers from our Q&A + error-code knowledge first and for what is not covered it gives basic guidance from its general SMS / DLT / RCS knowledge, with a caution note telling the client to contact support1@nimbusitsolutions.com if the panel does not have the feature. Every AI answer has a "Mail support" button; "No" on the helpful question also opens the mail format. Error codes typed in AI mode are still answered directly from our table.
-- Where clients see it: "Ask AI" button in the topic menu, and as an option when a typed question is not found / the answer did not help. AI is rate limited (20 questions / 10 min per client).
-- Key types: "AIza..." keys (Google AI Studio) and "AQ...." keys (Vertex AI express mode) are both supported - the server picks the right Google endpoint from the key format.
-- If Nia does not answer: Admin > Nia (AI) > **Test AI connection** shows the exact error (wrong key, model name, or the server cannot reach googleapis.com); also check the server terminal for `[support] AI failed:`. Restart the server after editing `.env`.
-- Do not commit `.env` to a public repo.
+3. Theme colors are configured at the top of `helpSupport.css`.
+4. Set `MONGO_URI` to store unanswered questions and feedback in MongoDB. Without it, a persistent local server writes JSONL logs under `server/logs/`.
 
-## Test
-`cd server && node scripts/selfTest.js` - content integrity + matcher checks.
+## Manage content
 
-## API (`/api/support`)
-`GET /content`, `POST /ask`, `POST /ai`, `POST /feedback`, `GET /health`, `/admin/*` (header `x-admin-key`).
+- Use the admin page to add or edit Q&A, topics, videos, and error codes; upload screenshots or videos; and turn unanswered questions into Q&A entries. Changes are saved to `server/support/data/custom.json` and appear in the chat immediately.
+- Edited seed Q&A entries can be restored with **Reset to original**.
+- Seed Q&A content is in `server/support/data/seed/*.js`. Video metadata is in `server/support/data/videos.json`. `server/support/data/errorCodes.json` is generated by `cd server && npm run build:errors`; hand-written error-code guidance is in `server/scripts/errorKnowledge.js`.
+- The MP4 files under `server/public/media/videos/` are demo placeholders (`dlt-mapping`, `sms-flow`, `rcs-template`, and `rcs-campaign`). Replace a file with one of the same name or upload a replacement from **Admin > Videos**.
+
+## Nia AI
+
+- Set `GEMINI_API_KEY` and `OPENROUTER_API_KEY` in the server environment. Both keys stay server-side; never prefix the OpenRouter key with `VITE_`. Gemini is tried first, followed by its configured fallback model; OpenRouter is used if Gemini fails. Gemini HTTP 429 responses are not retried. Restart or redeploy after changing server variables.
+- `VITE_SUPPORT_API_BASE` is a separate, public frontend setting, for example `https://help-support-2.onrender.com/api/support`.
+- The admin page's **Nia (AI)** tab can enable or disable AI, set additional notes, and test the connection.
+- Nia supports SMS, RCS, DLT, TRAI, error codes, this panel, and brief greetings. Other topics are politely declined. Greetings are answered without calling an AI provider.
+- On server start, check for `[support] AI check: OK` or `[support] AI check FAILED: <reason>`. The **Test AI connection** action and `[support] AI failed:` server logs provide further diagnostics.
+- AI answers use the Q&A and error-code knowledge first, then provide general SMS, DLT, or RCS guidance when needed. Users can email `support1@nimbusitsolutions.com` for further support. AI requests are limited to 20 per client every 10 minutes.
+- Google AI Studio keys (`AIza...`) and Vertex AI express-mode keys (`AQ...`) are supported.
+- Never commit `.env` files to a public repository.
+
+## Tests
+
+```powershell
+cd server
+npm test
+```
+
+The test checks content integrity and matching behavior. The root `npm run test:vercel` checks the Vercel runtime.
+
+## API
+
+The `/api/support` router provides `GET /content`, `POST /ask`, `POST /ai`, `POST /feedback`, `GET /health`, and `/admin/*` (protected by the `x-admin-key` header).

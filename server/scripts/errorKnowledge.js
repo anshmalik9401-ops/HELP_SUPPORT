@@ -1,11 +1,11 @@
-// Error code knowledge base (bilingual). hi = Hinglish, en = English.
+// English error-code knowledge base.
 // owner: 'client' (the client fixes it) | 'support' (support team) | 'operator' (operator/network) | 'none'
 // retry: does sending again help?
 //
 // CATEGORIES are generic templates used for every code in that group.
 // OVERRIDES are code-specific explanations (more accurate) - add more here as you learn them.
 
-const S = (hi, en) => ({ hi, en });
+const S = (_other, english) => ({ en: english });
 
 const CATEGORIES = {
   DELIVERED: {

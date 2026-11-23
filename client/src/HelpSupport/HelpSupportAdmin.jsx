@@ -2,10 +2,10 @@
 import { useEffect, useState, useCallback } from 'react';
 import './helpSupportAdmin.css';
 
-const EMPTY_FAQ = { id: '', category: '', question: { hi: '', en: '' }, answer: { hi: '', en: '' }, steps: { hi: '', en: '' }, tips: { hi: '', en: '' }, keywords: '', images: [], video: null };
-const EMPTY_VIDEO = { id: '', type: 'file', url: '', title: { hi: '', en: '' }, description: { hi: '', en: '' }, order: 100 };
-const EMPTY_CAT = { id: '', icon: '📁', title: { hi: '', en: '' }, order: 500 };
-const EMPTY_ERR = { code: '', description: '', meaning: { hi: '', en: '' }, steps: { hi: '', en: '' }, owner: 'support', retry: false, label: '' };
+const EMPTY_FAQ = { id: '', category: '', question: { en: '' }, answer: { en: '' }, steps: { en: '' }, tips: { en: '' }, keywords: '', images: [], video: null };
+const EMPTY_VIDEO = { id: '', type: 'file', url: '', title: { en: '' }, description: { en: '' }, order: 100 };
+const EMPTY_CAT = { id: '', icon: '📁', title: { en: '' }, order: 500 };
+const EMPTY_ERR = { code: '', description: '', meaning: { en: '' }, steps: { en: '' }, owner: 'support', retry: false, label: '' };
 const join = (a) => (Array.isArray(a) ? a.join('\n') : a || '');
 
 export default function HelpSupportAdmin({ apiBase = '/api/support' }) {
@@ -43,7 +43,7 @@ export default function HelpSupportAdmin({ apiBase = '/api/support' }) {
   useEffect(() => { if (authed && tab === 'errors') call('/errors?q=' + encodeURIComponent(errQ)).then(setErrList).catch(() => {}); }, [authed, tab, errQ]); // eslint-disable-line
 
   const save = async (path, body, after) => {
-    try { await call(path, { method: 'PUT', json: body }); await reload(); setForm(null); flash('ok', 'Saved ✔ (chat me turant live)'); after && after(); }
+    try { await call(path, { method: 'PUT', json: body }); await reload(); setForm(null); flash('ok', 'Saved ✔ (live in chat immediately)'); after && after(); }
     catch (err) { flash('bad', err.message); }
   };
   const del = async (path, text) => {
@@ -70,15 +70,13 @@ export default function HelpSupportAdmin({ apiBase = '/api/support' }) {
   if (!data) return <div className="hsa-root"><div className="hsa-login">Loading…</div></div>;
 
   const set = (path, v) => setForm((f) => { const n = JSON.parse(JSON.stringify(f)); let o = n; const p = path.split('.'); p.slice(0, -1).forEach((k) => { o = o[k]; }); o[p[p.length - 1]] = v; return n; });
-  const pairInput = (label, path, rows = 0, hint) => (
+  const textInput = (label, path, rows = 0, hint) => (
     <div className="hsa-field"><label>{label}{hint && <small> {hint}</small>}</label>
-      <div className="hsa-pair">
-        {['hi', 'en'].map((l) => {
-          const v = path.split('.').reduce((o, k) => o[k], form);
-          const props = { value: v[l] || '', placeholder: l === 'hi' ? 'Hinglish' : 'English', onChange: (e) => set(path + '.' + l, e.target.value) };
-          return rows ? <textarea key={l} rows={rows} {...props} /> : <input key={l} {...props} />;
-        })}
-      </div></div>
+      {(() => {
+        const value = path.split('.').reduce((o, k) => o[k], form);
+        const props = { value: value.en || '', placeholder: 'English', onChange: (e) => set(path + '.en', e.target.value) };
+        return rows ? <textarea rows={rows} {...props} /> : <input {...props} />;
+      })()}</div>
   );
   const catName = (id) => { const c = data.categories.find((x) => x.id === id); return c ? c.title.en : id; };
 
@@ -93,24 +91,21 @@ export default function HelpSupportAdmin({ apiBase = '/api/support' }) {
           <div className="hsa-field"><label>Topic</label>
             <select value={f.category} onChange={(e) => set('category', e.target.value)}><option value="">- select -</option>{data.categories.map((c) => <option key={c.id} value={c.id}>{c.icon} {c.title.en}</option>)}</select></div>
         </div>
-        {pairInput('Question *', 'question')}
-        {pairInput('Answer *', 'answer', 3)}
-        {pairInput('Steps (one per line)', 'steps', 5)}
-        {pairInput('Tip (optional)', 'tips', 2)}
-        <div className="hsa-field"><label>Keywords <small>(comma separated, Hinglish + English - clients ke type karne wale words)</small></label>
+        {textInput('Question *', 'question')}
+        {textInput('Answer *', 'answer', 3)}
+        {textInput('Steps (one per line)', 'steps', 5)}
+        {textInput('Tip (optional)', 'tips', 2)}
+        <div className="hsa-field"><label>Keywords <small>(comma-separated words and phrases clients may use)</small></label>
           <textarea rows={2} value={join(f.keywords)} onChange={(e) => set('keywords', e.target.value)} /></div>
         <div className="hsa-field"><label>Screenshots</label>
           {(f.images || []).map((im, i) => (
             <div className="hsa-img" key={i}>
               {im.src && <img src={apiBase + im.src} alt="" />}
-              <div className="hsa-pair">
-                <input placeholder="Caption Hinglish" value={im.caption?.hi || ''} onChange={(e) => set(`images.${i}.caption`, { hi: e.target.value, en: im.caption?.en || '' })} />
-                <input placeholder="Caption English" value={im.caption?.en || ''} onChange={(e) => set(`images.${i}.caption`, { hi: im.caption?.hi || '', en: e.target.value })} />
-              </div>
+              <input placeholder="Caption (English)" value={im.caption?.en || ''} onChange={(e) => set(`images.${i}.caption`, { en: e.target.value })} />
               <button className="hsa-btn" onClick={() => set('images', f.images.filter((_, j) => j !== i))}>Remove</button>
             </div>
           ))}
-          <label className="hsa-btn">＋ Upload screenshot<input type="file" accept="image/*" hidden onChange={async (e) => { const u = await upload(e.target.files[0]); if (u) set('images', [...(f.images || []), { src: u, caption: { hi: '', en: '' } }]); e.target.value = ''; }} /></label>
+          <label className="hsa-btn">＋ Upload screenshot<input type="file" accept="image/*" hidden onChange={async (e) => { const u = await upload(e.target.files[0]); if (u) set('images', [...(f.images || []), { src: u, caption: { en: '' } }]); e.target.value = ''; }} /></label>
         </div>
         <div className="hsa-field"><label>Demo video (optional)</label>
           <select value={f.video?.ref || ''} onChange={(e) => set('video', e.target.value ? { ref: e.target.value } : null)}>
@@ -120,8 +115,8 @@ export default function HelpSupportAdmin({ apiBase = '/api/support' }) {
         <div className="hsa-actions">
           <button className="hsa-btn hsa-primary" onClick={() => save('/faq/' + encodeURIComponent(f.id), f)}>Save</button>
           <button className="hsa-btn" onClick={() => setForm(null)}>Cancel</button>
-          {!f._new && f.source === 'edited' && <button className="hsa-btn" onClick={() => del('/faq/' + f.id + '?reset=1', 'Original (seed) answer wapas lagayein?')}>Reset to original</button>}
-          {!f._new && <button className="hsa-btn hsa-danger" onClick={() => del('/faq/' + f.id, 'Ye Q&A delete karein?')}>Delete</button>}
+          {!f._new && f.source === 'edited' && <button className="hsa-btn" onClick={() => del('/faq/' + f.id + '?reset=1', 'Reset this Q&A to its original content?')}>Reset to original</button>}
+          {!f._new && <button className="hsa-btn hsa-danger" onClick={() => del('/faq/' + f.id, 'Delete this Q&A?')}>Delete</button>}
         </div>
       </div>
     );
@@ -134,11 +129,11 @@ export default function HelpSupportAdmin({ apiBase = '/api/support' }) {
         <div className="hsa-field"><label>Icon (emoji)</label><input value={form.icon} onChange={(e) => set('icon', e.target.value)} /></div>
         <div className="hsa-field"><label>Order</label><input type="number" value={form.order} onChange={(e) => set('order', e.target.value)} /></div>
       </div>
-      {pairInput('Title *', 'title')}
+      {textInput('Title *', 'title')}
       <div className="hsa-actions">
         <button className="hsa-btn hsa-primary" onClick={() => save('/category/' + encodeURIComponent(form.id), form)}>Save</button>
         <button className="hsa-btn" onClick={() => setForm(null)}>Cancel</button>
-        {!form._new && <button className="hsa-btn hsa-danger" onClick={() => del('/category/' + form.id, 'Topic hata dein? (Uske Q&A menu me nahi dikhenge)')}>Delete</button>}
+        {!form._new && <button className="hsa-btn hsa-danger" onClick={() => del('/category/' + form.id, 'Delete this topic? Its Q&A items will no longer appear in the menu.')}>Delete</button>}
       </div></div>
   );
 
@@ -152,13 +147,13 @@ export default function HelpSupportAdmin({ apiBase = '/api/support' }) {
       <div className="hsa-field"><label>{form.type === 'youtube' ? 'YouTube embed URL (https://www.youtube.com/embed/...)' : 'Video URL / path'}</label>
         <input value={form.url} onChange={(e) => set('url', e.target.value)} />
         {form.type === 'file' && <label className="hsa-btn">⬆ Upload mp4<input type="file" accept="video/mp4,video/webm" hidden onChange={async (e) => { const u = await upload(e.target.files[0]); if (u) set('url', u); e.target.value = ''; }} /></label>}
-        {form.type === 'file' && <small>Tip: same ID wali placeholder video replace karne ke liye us ID ko edit karke nayi file upload karein.</small>}</div>
-      {pairInput('Title *', 'title')}
-      {pairInput('Description', 'description', 2)}
+        {form.type === 'file' && <small>Tip: edit this video and upload a replacement file to replace its placeholder.</small>}</div>
+      {textInput('Title *', 'title')}
+      {textInput('Description', 'description', 2)}
       <div className="hsa-actions">
         <button className="hsa-btn hsa-primary" onClick={() => save('/video/' + encodeURIComponent(form.id), form)}>Save</button>
         <button className="hsa-btn" onClick={() => setForm(null)}>Cancel</button>
-        {!form._new && <button className="hsa-btn hsa-danger" onClick={() => del('/video/' + form.id, 'Video delete karein?')}>Delete</button>}
+        {!form._new && <button className="hsa-btn hsa-danger" onClick={() => del('/video/' + form.id, 'Delete this video?')}>Delete</button>}
       </div></div>
   );
 
@@ -171,12 +166,12 @@ export default function HelpSupportAdmin({ apiBase = '/api/support' }) {
       </div>
       <div className="hsa-field"><label>Operator description (English)</label><input value={form.description} onChange={(e) => set('description', e.target.value)} /></div>
       <div className="hsa-field"><label>Category label (optional)</label><input value={form.label} onChange={(e) => set('label', e.target.value)} /></div>
-      {pairInput('Meaning *', 'meaning', 2)}
-      {pairInput('Steps (one per line)', 'steps', 5)}
+      {textInput('Meaning *', 'meaning', 2)}
+      {textInput('Steps (one per line)', 'steps', 5)}
       <div className="hsa-actions">
         <button className="hsa-btn hsa-primary" onClick={() => save('/error/' + encodeURIComponent(form.code), form)}>Save</button>
         <button className="hsa-btn" onClick={() => setForm(null)}>Cancel</button>
-        {!form._new && <button className="hsa-btn" onClick={() => del('/error/' + form.code, 'Admin edit hata kar original wapas?')}>Reset my edit</button>}
+        {!form._new && <button className="hsa-btn" onClick={() => del('/error/' + form.code, 'Remove this admin edit and restore the original?')}>Reset my edit</button>}
       </div></div>
   );
 
@@ -206,19 +201,19 @@ export default function HelpSupportAdmin({ apiBase = '/api/support' }) {
             <div className="hsa-actions"><button className="hsa-btn hsa-primary" onClick={() => setForm({ ...EMPTY_FAQ, _new: true })}>＋ Add Q&amp;A</button><span className="hsa-count">{data.faqs.length} Q&amp;A</span></div>
             <table className="hsa-table"><thead><tr><th>Question</th><th>Topic</th><th>Source</th><th /></tr></thead><tbody>
               {data.faqs.map((f) => (<tr key={f.id}><td>{f.question.en}</td><td>{catName(f.category)}</td><td><span className={'hsa-tag ' + f.source}>{f.source}</span></td>
-                <td><button className="hsa-btn" onClick={() => setForm({ ...f, steps: { hi: join(f.steps.hi), en: join(f.steps.en) }, tips: { hi: join(f.tips.hi), en: join(f.tips.en) }, keywords: join(f.keywords), images: f.images || [] })}>Edit</button></td></tr>))}
+                <td><button className="hsa-btn" onClick={() => setForm({ ...f, steps: { en: join(f.steps.en) }, tips: { en: join(f.tips.en) }, keywords: join(f.keywords), images: f.images || [] })}>Edit</button></td></tr>))}
             </tbody></table></>)}
           {tab === 'cats' && (<>
             <div className="hsa-actions"><button className="hsa-btn hsa-primary" onClick={() => setForm({ ...EMPTY_CAT, _new: true })}>＋ Add topic</button></div>
-            <table className="hsa-table"><tbody>{data.categories.map((c) => (<tr key={c.id}><td>{c.icon} {c.title.en}</td><td>{c.title.hi}</td><td><span className={'hsa-tag ' + c.source}>{c.source}</span></td><td><button className="hsa-btn" onClick={() => setForm({ ...c })}>Edit</button></td></tr>))}</tbody></table></>)}
+            <table className="hsa-table"><tbody>{data.categories.map((c) => (<tr key={c.id}><td>{c.icon} {c.title.en}</td><td><span className={'hsa-tag ' + c.source}>{c.source}</span></td><td><button className="hsa-btn" onClick={() => setForm({ ...c })}>Edit</button></td></tr>))}</tbody></table></>)}
           {tab === 'videos' && (<>
             <div className="hsa-actions"><button className="hsa-btn hsa-primary" onClick={() => setForm({ ...EMPTY_VIDEO, _new: true })}>＋ Add video</button></div>
-            <table className="hsa-table"><tbody>{data.videos.map((v) => (<tr key={v.id}><td>🎬 {v.title.en}</td><td><code>{v.url}</code></td><td><span className={'hsa-tag ' + v.source}>{v.source}</span></td><td><button className="hsa-btn" onClick={() => setForm({ ...v, description: v.description || { hi: '', en: '' } })}>Edit</button></td></tr>))}</tbody></table></>)}
+            <table className="hsa-table"><tbody>{data.videos.map((v) => (<tr key={v.id}><td>🎬 {v.title.en}</td><td><code>{v.url}</code></td><td><span className={'hsa-tag ' + v.source}>{v.source}</span></td><td><button className="hsa-btn" onClick={() => setForm({ ...v, description: v.description || { en: '' } })}>Edit</button></td></tr>))}</tbody></table></>)}
           {tab === 'errors' && (<>
             <div className="hsa-actions"><button className="hsa-btn hsa-primary" onClick={() => setForm({ ...EMPTY_ERR, _new: true })}>＋ Add / override code</button>
               <input className="hsa-search" placeholder={`Search code or text (${data.errorCount} codes)`} value={errQ} onChange={(e) => setErrQ(e.target.value)} /></div>
             <table className="hsa-table"><tbody>{errList.map((e) => (<tr key={e.code}><td><b>{e.code}</b></td><td>{e.description}</td><td>{e.source && <span className={'hsa-tag ' + e.source}>{e.source}</span>}</td>
-              <td><button className="hsa-btn" onClick={() => setForm({ code: e.code, description: e.description, meaning: e.meaning || { hi: '', en: '' }, steps: { hi: join(e.steps?.hi), en: join(e.steps?.en) }, owner: e.owner || 'support', retry: !!e.retry, label: e.categoryLabel?.en || '' })}>Edit</button></td></tr>))}</tbody></table></>)}
+              <td><button className="hsa-btn" onClick={() => setForm({ code: e.code, description: e.description, meaning: e.meaning || { en: '' }, steps: { en: join(e.steps?.en) }, owner: e.owner || 'support', retry: !!e.retry, label: e.categoryLabel?.en || '' })}>Edit</button></td></tr>))}</tbody></table></>)}
           {tab === 'ai' && (ai ? (
             <div className="hsa-card">
               <h3>Nia - AI assistant</h3>
@@ -242,10 +237,10 @@ export default function HelpSupportAdmin({ apiBase = '/api/support' }) {
             </div>
           ) : <p>Loading…</p>)}
           {tab === 'unanswered' && (<>
-            <p className="hsa-note">Jo sawal clients ne type kiye par jawab nahi mila. "Create Q&amp;A" se unka jawab add karein.</p>
+            <p className="hsa-note">Questions that clients submitted without finding an answer. Add an answer with "Create Q&amp;A."</p>
             <table className="hsa-table"><tbody>{unanswered.length === 0 && <tr><td>No unanswered questions yet 🎉</td></tr>}
               {unanswered.map((u, i) => (<tr key={i}><td>{u.text}</td><td>{u.at ? new Date(u.at).toLocaleString() : ''}</td>
-                <td><button className="hsa-btn" onClick={() => { setTab('faq'); setForm({ ...EMPTY_FAQ, _new: true, question: { hi: u.text, en: u.text }, keywords: u.text }); }}>Create Q&amp;A</button></td></tr>))}</tbody></table></>)}
+                <td><button className="hsa-btn" onClick={() => { setTab('faq'); setForm({ ...EMPTY_FAQ, _new: true, question: { en: u.text }, keywords: u.text }); }}>Create Q&amp;A</button></td></tr>))}</tbody></table></>)}
         </>
       )}
     </div>

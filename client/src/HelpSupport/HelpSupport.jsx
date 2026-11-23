@@ -56,13 +56,13 @@ function MailBlock({ L, query, email }) {
 /**
  * Help & Support Q&A chat.
  *   <HelpSupport apiBase="/api/support" user={{ name: 'Ansh' }} />
- * Messages are stored as data (not text) so switching language re-renders the whole chat.
+ * The chat UI and support content are English-only.
  */
 export default function HelpSupport({ apiBase = '/api/support', user = null, className = '' }) {
   const api = useMemo(() => makeApi(apiBase), [apiBase]);
   const [content, setContent] = useState(null);
   const [loadError, setLoadError] = useState(false);
-  const [lang, setLang] = useState(null); // null until the client picks a language
+  const lang = 'en';
   const [msgs, setMsgs] = useState([]);
   const [typing, setTyping] = useState(false);
   const [ended, setEnded] = useState(false);
@@ -74,7 +74,7 @@ export default function HelpSupport({ apiBase = '/api/support', user = null, cla
   const idc = useRef(0);
   const sessionId = useRef(uid());
   const bottomRef = useRef(null);
-  const L = T[lang || 'en'];
+  const L = T.en;
 
   const faqById = useMemo(() => Object.fromEntries((content?.faqs || []).map((f) => [f.id, f])), [content]);
   const catById = useMemo(() => Object.fromEntries((content?.categories || []).map((c) => [c.id, c])), [content]);
@@ -100,8 +100,8 @@ export default function HelpSupport({ apiBase = '/api/support', user = null, cla
   const start = useCallback(() => {
     run.current += 1;
     sessionId.current = uid();
-    setMsgs([]); setLang(null); setEnded(false); setInput(''); setTyping(false); setZoom(null); setAiMode(false); hist.current = [];
-    say([{ kind: 'greet' }, { kind: 'chooseLang' }]);
+    setMsgs([]); setEnded(false); setInput(''); setTyping(false); setZoom(null); setAiMode(false); hist.current = [];
+    say([{ kind: 'greet' }, { kind: 'intro' }, { kind: 'categories' }]);
   }, [say]);
 
   const load = useCallback(() => {
@@ -120,12 +120,6 @@ export default function HelpSupport({ apiBase = '/api/support', user = null, cla
   }, [zoom]);
 
   /* ---------- flow ---------- */
-  const chooseLang = (l) => {
-    setLang(l);
-    push({ from: 'user', kind: 'userLang', l });
-    say([{ kind: 'intro' }, { kind: 'categories' }]);
-  };
-
   const pickCategory = (c) => {
     setAiMode(false);
     push({ from: 'user', kind: 'userText', text: c.title });
@@ -151,7 +145,7 @@ export default function HelpSupport({ apiBase = '/api/support', user = null, cla
   };
 
   const backToMenu = () => {
-    push({ from: 'user', kind: 'userText', text: { hi: 'Main menu', en: 'Main menu' } });
+    push({ from: 'user', kind: 'userText', text: 'Main menu' });
     say([{ kind: 'categories' }]);
   };
 
@@ -162,13 +156,13 @@ export default function HelpSupport({ apiBase = '/api/support', user = null, cla
   };
 
   const openMailFlow = (query) => {
-    push({ from: 'user', kind: 'userText', text: { hi: 'Support ko mail karna hai', en: 'I want to mail support' } });
+    push({ from: 'user', kind: 'userText', text: 'I want to email support' });
     say([{ kind: 'mail', query: query || '' }, { kind: 'thanks' }]).then((done) => { if (done) setEnded(true); });
   };
 
   // ---- Ask AI
   const startAi = () => {
-    push({ from: 'user', kind: 'userText', text: { hi: 'AI se poochna hai', en: 'Ask AI' } });
+    push({ from: 'user', kind: 'userText', text: 'Ask AI' });
     setAiMode(true);
     say([{ kind: 'aiIntro' }]);
   };
@@ -180,21 +174,21 @@ export default function HelpSupport({ apiBase = '/api/support', user = null, cla
   };
 
   const finishChat = () => {
-    push({ from: 'user', kind: 'userText', text: { hi: 'Chat khatam karein', en: 'Finish chat' } });
+    push({ from: 'user', kind: 'userText', text: 'Finish chat' });
     say([{ kind: 'thanks' }]).then((done) => { if (done) setEnded(true); });
   };
 
   const answerFollowup = (m, helpful) => {
     setMsgs((p) => p.map((x) => (x.id === m.id ? { ...x, done: helpful ? 'yes' : 'no' } : x)));
     api.feedback({ faqId: m.faqId, helpful, lang, sessionId: sessionId.current });
-    push({ from: 'user', kind: 'userText', text: helpful ? { hi: 'Haan', en: 'Yes' } : { hi: 'Nahi', en: 'No' } });
+    push({ from: 'user', kind: 'userText', text: helpful ? 'Yes' : 'No' });
     if (helpful) { setAiMode(false); say([{ kind: 'glad' }, { kind: 'categories' }]); }
     else if (aiEnabled && m.faqId !== 'ai') say([{ kind: 'sorry' }, { kind: 'aiOffer', query: m.query || '' }]);
     else fallback(null, 'sorry');
   };
 
   const notListed = () => {
-    push({ from: 'user', kind: 'userText', text: { hi: 'Mera sawal list me nahi hai', en: 'My question is not listed' } });
+    push({ from: 'user', kind: 'userText', text: 'My question is not listed' });
     fallback(null, 'notFound');
   };
 
@@ -233,7 +227,7 @@ export default function HelpSupport({ apiBase = '/api/support', user = null, cla
   };
 
   /* ---------- render helpers ---------- */
-  const pick = (o) => (o ? o[lang || 'en'] : '');
+  const pick = (o) => (o ? o.en : '');
 
   const renderVideo = (v) => v && (
     <div className="hs-video">
@@ -319,21 +313,11 @@ export default function HelpSupport({ apiBase = '/api/support', user = null, cla
         const brand = content?.config?.brandName || '';
         return (
           <>
-            <p><b>{greetingWord()}{name}! 👋 / Namaste 🙏</b></p>
-            <p>Welcome to {brand} Help &amp; Support. / {brand} Help &amp; Support me aapka swagat hai.</p>
+            <p><b>{greetingWord()}{name}! 👋</b></p>
+            <p>Welcome to {brand} Help &amp; Support.</p>
           </>
         );
       }
-      case 'chooseLang':
-        return (
-          <>
-            <p><b>Please choose your language / Kripya apni bhasha chunein</b></p>
-            <div className="hs-actions">
-              <button className="hs-btn hs-btn-primary" disabled={!!lang} onClick={() => chooseLang('hi')}>हिन्दी (Hinglish)</button>
-              <button className="hs-btn hs-btn-primary" disabled={!!lang} onClick={() => chooseLang('en')}>English</button>
-            </div>
-          </>
-        );
       case 'intro': return <p>{L.intro}</p>;
       case 'categories': return renderCategories();
       case 'questions': {
@@ -386,7 +370,7 @@ export default function HelpSupport({ apiBase = '/api/support', user = null, cla
             <div className="hs-qlist">
               {m.ids.map((id) => faqById[id] && <button key={id} className="hs-qbtn" disabled={ended} onClick={() => pickFaq(faqById[id])}>{pick(faqById[id].question)}</button>)}
               {aiEnabled && <button className="hs-qbtn hs-vbtn" disabled={ended} onClick={() => askAiThis(m.query)}>{L.askAiThis}</button>}
-              <button className="hs-qbtn hs-qback" disabled={ended} onClick={() => { push({ from: 'user', kind: 'userText', text: { hi: 'Mera sawal alag hai', en: 'My question is different' } }); fallback(m.query, 'notFound'); }}>{L.notInList}</button>
+              <button className="hs-qbtn hs-qback" disabled={ended} onClick={() => { push({ from: 'user', kind: 'userText', text: 'My question is different' }); fallback(m.query, 'notFound'); }}>{L.notInList}</button>
             </div>
           </>
         );
@@ -428,7 +412,6 @@ export default function HelpSupport({ apiBase = '/api/support', user = null, cla
   };
 
   const renderUser = (m) => {
-    if (m.kind === 'userLang') return m.l === 'hi' ? 'हिन्दी (Hinglish)' : 'English';
     if (m.kind === 'userRaw') return m.raw;
     return pick(m.text);
   };
@@ -446,8 +429,8 @@ export default function HelpSupport({ apiBase = '/api/support', user = null, cla
   }
   if (!content) return <div className={`hs-root ${className}`}><div className="hs-center">{L.loading}</div></div>;
 
-  const inputDisabled = !lang || ended;
-  const placeholder = ended ? L.phEnded : !lang ? L.phLang : L.ph;
+  const inputDisabled = ended;
+  const placeholder = ended ? L.phEnded : L.ph;
   const wide = new Set(['mail', 'errors', 'faq', 'video', 'videoList', 'aiAnswer', 'aiOffer', 'aiErr', 'aiQuota']);
 
   return (
@@ -458,12 +441,6 @@ export default function HelpSupport({ apiBase = '/api/support', user = null, cla
           <div className="hs-title">{L.title}</div>
           <div className="hs-sub"><span className="hs-dot" />{L.subtitle}</div>
         </div>
-        {lang && (
-          <div className="hs-lang" role="group" aria-label="Language">
-            <button className={lang === 'hi' ? 'on' : ''} onClick={() => setLang('hi')}>हिन्दी</button>
-            <button className={lang === 'en' ? 'on' : ''} onClick={() => setLang('en')}>EN</button>
-          </div>
-        )}
       </header>
 
       <div className="hs-body" aria-live="polite">
